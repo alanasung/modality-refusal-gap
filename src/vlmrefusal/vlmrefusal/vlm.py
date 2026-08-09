@@ -371,7 +371,10 @@ def load_vlm(cfg: Any = None, device: SimpleDevice | None = None) -> VLMHandle:
         try:
             handle = _load_transformers_vlm(name, cfg, info, cand_arch)
             handle.role = cand_role
-            handle.architectural_claim_answered = cand_arch == "unified"
+            # Per-arm claim: real unified or modular loads answer their own arm.
+            # Architecture-comparison headlines still need BOTH arms via
+            # contrast_claim_ok in architectures.py.
+            handle.architectural_claim_answered = cand_arch in {"unified", "modular"}
             if errors:
                 handle.load_notes.append("earlier candidates failed: " + " | ".join(errors))
             return handle
@@ -464,7 +467,7 @@ def _load_transformers_vlm(
         n_layers=n_layers,
         hidden_size=hidden,
         architecture=arch,
-        architectural_claim_answered=(arch == "unified"),
+        architectural_claim_answered=(arch in {"unified", "modular"}),
         load_notes=[],
     )
 

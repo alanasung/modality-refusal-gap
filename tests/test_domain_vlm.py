@@ -88,3 +88,5 @@ def test_architectures_contrast_summary():
     )
     s = contrast_summary({"unified": fake, "modular": None})
     assert s["architectural_claim_answered"] is True
+    # Dual-measured gate: modular missing → contrast_claim_ok=false.
+    assert s["contrast_claim_ok"] is False

@@ -34,7 +34,9 @@ model:
   revision: main
 
 data:
-  n_items: 16
+  # Modest bump for gap CI plumbing; still below powered floor → power_status=micro
+  # and gap_claim_ok=false until n_harmful per modality >= 24.
+  n_items: 32
 
 force_synthetic_vlm: false
 vlm_name: OpenGVLab/Mono-InternVL-2B
@@ -44,3 +46,5 @@ allow_modular_as_subject: false
 modular_contrast: Qwen/Qwen2-VL-2B-Instruct
 quantization: none
 steer_alpha: 1.0
+power_status: micro
+gap_claim_ok: false

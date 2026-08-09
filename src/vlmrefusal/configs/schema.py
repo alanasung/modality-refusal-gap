@@ -274,3 +274,6 @@ class Config:
     modular_contrast: str | None = None
     quantization: str = "none"
     steer_alpha: float = 1.0
+    # P7 honesty stamps for underpowered domain pilots (not spine DataConfig n).
+    power_status: str = "micro"
+    gap_claim_ok: bool = False

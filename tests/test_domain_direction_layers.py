@@ -26,7 +26,9 @@ def test_layers(tmp_path):
     assert "best_restoration" in out
 def test_vlsbench(tmp_path):
     out = run_vlsbench(_cfg(), None, tmp_path, n_items=4)
-    assert out["corpus"]=="synthetic_leakless_standin"
+    # P7: prefer checked-in local leakless mini over synthetic stand-in.
+    assert out["corpus"] in {"local_leakless_mini", "synthetic_leakless_standin"}
+    assert out["claims_utility"] is False
 def test_utility(tmp_path):
     ocr = _ocr(tmp_path)
     d = run_direction(_cfg(), None, tmp_path, ocr)

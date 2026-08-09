@@ -17,7 +17,12 @@ from .vlm import (
     load_vlm,
 )
 
-__all__ = ["load_subject_pair", "contrast_summary", "run_contrast_metrics"]
+__all__ = [
+    "load_subject_pair",
+    "contrast_summary",
+    "contrast_claim_gate",
+    "run_contrast_metrics",
+]
 
 
 def load_subject_pair(cfg: Any) -> dict[str, VLMHandle | None]:
@@ -36,9 +41,56 @@ def load_subject_pair(cfg: Any) -> dict[str, VLMHandle | None]:
     return {"unified": subject, "modular": modular}
 
 
+def _arm_measured(handle: VLMHandle | None) -> bool:
+    """True when an arm is a real non-synthetic load that answered its claim."""
+    if handle is None:
+        return False
+    if handle.backend == "synthetic" or handle.architecture == "synthetic":
+        return False
+    return bool(handle.architectural_claim_answered)
+
+
+def contrast_claim_gate(handles: dict[str, VLMHandle | None]) -> dict[str, Any]:
+    """Dual-measured gate for architecture-comparison headlines.
+
+    Headlines require both unified and modular arms to have
+    ``architectural_claim_answered`` and non-synthetic modes; otherwise
+    ``contrast_claim_ok=false``.
+    """
+    subject = handles.get("unified")
+    modular = handles.get("modular")
+    unified_ok = _arm_measured(subject)
+    modular_ok = _arm_measured(modular)
+    contrast_claim_ok = unified_ok and modular_ok
+    return {
+        "contrast_claim_ok": contrast_claim_ok,
+        "unified_measured": unified_ok,
+        "modular_measured": modular_ok,
+        "unified_architectural_claim_answered": bool(
+            subject and subject.architectural_claim_answered
+        ),
+        "modular_architectural_claim_answered": bool(
+            modular and modular.architectural_claim_answered
+        ),
+        "unified_backend": None if subject is None else subject.backend,
+        "modular_backend": None if modular is None else modular.backend,
+        "honesty": (
+            "OK: dual-measured unified+modular contrast"
+            if contrast_claim_ok
+            else (
+                "UNANSWERED: architecture-comparison headlines require both "
+                "unified and modular architectural_claim_answered with "
+                "non-synthetic backends; contrast_claim_ok=false"
+            )
+        ),
+    }
+
+
 def contrast_summary(handles: dict[str, VLMHandle | None]) -> dict[str, Any]:
     subject = handles.get("unified")
     modular = handles.get("modular")
+    gate = contrast_claim_gate(handles)
+    # Legacy single-arm flag: unified subject alone answered its load claim.
     answered = bool(subject and subject.architectural_claim_answered)
     return {
         "unified_name": None if subject is None else subject.name,
@@ -46,8 +98,11 @@ def contrast_summary(handles: dict[str, VLMHandle | None]) -> dict[str, Any]:
         "modular_name": None if modular is None else modular.name,
         "modular_architecture": None if modular is None else modular.architecture,
         "architectural_claim_answered": answered,
+        "contrast_claim_ok": gate["contrast_claim_ok"],
+        "unified_measured": gate["unified_measured"],
+        "modular_measured": gate["modular_measured"],
         "primary_plan": UNIFIED_PRIMARY,
-        "honesty": (
+        "honesty": gate["honesty"] if not gate["contrast_claim_ok"] else (
             "OK: unified subject loaded"
             if answered
             else "UNANSWERED: do not report modular results as settling the unified question"
@@ -71,28 +126,54 @@ def run_contrast_metrics(
     subject = load_vlm(cfg)
     summary_partial = contrast_summary({"unified": subject, "modular": None})
     per_arch: dict[str, Any] = {}
+    seed = int(getattr(getattr(cfg, "run", cfg), "seed", 0))
 
     def _measure(key: str, handle: VLMHandle) -> None:
         try:
             layer = max(0, handle.n_layers - 1)
             direction, meta = extract_refusal_direction(handle, items, layer)
-            gap = measure_gap(handle, items)
+            gap = measure_gap(handle, items, seed=seed)
             projs = project_modality(handle, items, direction, layer)
             hydra = hydra_curve(handle, items, direction)
             per_arch[key] = {
                 "model": handle.name,
                 "architecture": handle.architecture,
+                "backend": handle.backend,
                 "architectural_claim_answered": handle.architectural_claim_answered,
                 "gap": gap.get("refusal_gap_text_minus_image"),
                 "gap_status": gap.get("status"),
+                "gap_ci": gap.get("gap_ci"),
+                "mde": gap.get("mde"),
+                "power_status": gap.get("power_status"),
+                "gap_claim_ok": gap.get("gap_claim_ok"),
                 "projection_gap": projs.get("text", 0.0) - projs.get("image", 0.0),
                 "hydra_baseline": hydra.get("baseline_refusal_rate"),
                 "fit_meta": meta,
             }
         except Exception as exc:  # noqa: BLE001
-            per_arch[key] = {"error": str(exc), "model": handle.name}
+            per_arch[key] = {
+                "error": str(exc),
+                "model": handle.name,
+                "architecture": handle.architecture,
+                "backend": handle.backend,
+                "architectural_claim_answered": handle.architectural_claim_answered,
+            }
 
     _measure("unified", subject)
+    # Keep a lightweight stub for the dual gate after unload.
+    unified_stub = VLMHandle(
+        name=subject.name,
+        backend=subject.backend,
+        model=None,
+        processor=None,
+        device=subject.device,
+        n_layers=subject.n_layers,
+        hidden_size=subject.hidden_size,
+        architecture=subject.architecture,
+        role=subject.role,
+        architectural_claim_answered=subject.architectural_claim_answered,
+        load_notes=list(subject.load_notes),
+    )
     del subject
     gc.collect()
     try:
@@ -115,17 +196,27 @@ def run_contrast_metrics(
 
     modular = load_vlm(_Contrast())
     _measure("modular", modular)
-    summary = contrast_summary({"unified": None, "modular": modular})
-    # Restore unified facts from first measurement.
-    summary["unified_name"] = per_arch.get("unified", {}).get("model")
-    summary["unified_architecture"] = per_arch.get("unified", {}).get("architecture")
+    summary = contrast_summary({"unified": unified_stub, "modular": modular})
+    # Restore unified facts from first measurement / stub.
+    summary["unified_name"] = per_arch.get("unified", {}).get("model") or unified_stub.name
+    summary["unified_architecture"] = (
+        per_arch.get("unified", {}).get("architecture") or unified_stub.architecture
+    )
     summary["architectural_claim_answered"] = bool(
         per_arch.get("unified", {}).get("architectural_claim_answered")
     )
+    gate = contrast_claim_gate({"unified": unified_stub, "modular": modular})
+    summary["contrast_claim_ok"] = gate["contrast_claim_ok"]
+    summary["unified_measured"] = gate["unified_measured"]
+    summary["modular_measured"] = gate["modular_measured"]
     summary["honesty"] = (
-        "OK: unified subject measured"
-        if summary["architectural_claim_answered"]
-        else summary_partial["honesty"]
+        gate["honesty"]
+        if not gate["contrast_claim_ok"]
+        else (
+            "OK: dual-measured unified+modular contrast"
+            if summary["architectural_claim_answered"]
+            else summary_partial["honesty"]
+        )
     )
     del modular
     gc.collect()
@@ -136,7 +227,19 @@ def run_contrast_metrics(
         mg = per_arch["modular"].get("gap")
         if ug is not None and mg is not None:
             interaction = {"gap_unified_minus_modular": ug - mg}
-    out = {**summary, "per_architecture": per_arch, "interaction": interaction, "load_mode": "sequential"}
+            # Interaction headlines inherit the dual-measured gate.
+            if not summary["contrast_claim_ok"]:
+                interaction["contrast_claim_ok"] = False
+                interaction["note"] = (
+                    "Do not report unified−modular gap interaction as settling "
+                    "architecture comparison; contrast_claim_ok=false"
+                )
+    out = {
+        **summary,
+        "per_architecture": per_arch,
+        "interaction": interaction,
+        "load_mode": "sequential",
+    }
     path = write_json(artifacts / "architectures.json", out)
     out["artifact"] = str(path)
     return out

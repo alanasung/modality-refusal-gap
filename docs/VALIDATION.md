@@ -62,3 +62,16 @@ Operating judgment: **ship P1 architectural upgrade**; treat Codex science-depth
 
 Residual (frontier / licensed corpora, not empty stages): real Mono-InternVL weights, licensed VLSBench root, full MMLU/MMBench harness.
 
+## P7 rigor pass (stats + claim contracts)
+
+| Fix | Status |
+|---|---|
+| Dual-measured contrast gate (`contrast_claim_ok` requires unified+modular `architectural_claim_answered` and non-synthetic backends) | OK (`architectures.py`) |
+| Local leakless mini-fixture (PNG+JSON under `data/fixtures/leakless_mini/`, decoupled text/image intents) | OK |
+| Gap measured on fixture; `corpus=local_leakless_mini`; `claims_utility=false` | OK (`vlsbench.py`) |
+| Bootstrap CI on text−image refuse gap + `mde` / `null_claim` | OK (`gap.py`) |
+| Pilot power honesty: modest `n_items=32`, stamp `power_status=micro` / `gap_claim_ok=false` when underpowered | OK (`pilot.yaml`, README) |
+| Hub-free P7 domain tests | OK (`tests/test_domain_p7_contrast_gap.py`) |
+
+Residual (unchanged): licensed VLSBench / Mono-InternVL weights for reportable measured contrast; powered gap floor still requires ≥24 harmful pairs per modality.
+

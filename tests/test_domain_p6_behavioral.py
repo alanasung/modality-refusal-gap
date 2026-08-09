@@ -290,5 +290,7 @@ def test_utility_and_vlsbench_honesty(tmp_path):
     assert util["local_mini_status"] == "local_mini"
     vls = run_vlsbench(cfg, None, tmp_path, n_items=4)
     assert vls["claims_utility"] is False
-    assert vls["status"] == "standin"
+    # P7 prefers checked-in local_leakless_mini over synthetic stand-in.
+    assert vls["status"] in {"local_fixture", "standin", "partial"}
     assert vls.get("claims_vlsbench") is False
+    assert vls["corpus"] in {"local_leakless_mini", "synthetic_leakless_standin"}

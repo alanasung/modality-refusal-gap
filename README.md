@@ -110,8 +110,14 @@ MIT. Model weights and third-party datasets retain their upstream licenses.
 4. Chat templates are applied when available; the path is recorded.
 5. MPS sets `PYTORCH_ENABLE_MPS_FALLBACK` and records the flag.
 6. CI spanning zero is inconclusive; report MDE and run TOST before null claims.
-7. Pilot `n_items >= 512`.
+7. Pilot power is stamped (`power_status`: `powered` / `micro` / `smoke`). Domain
+   pilots may use modest `n_items` with `gap_claim_ok=false` rather than claiming
+   a powered 512-item run. Spine `DataConfig` default remains 512 for generic
+   harness work.
 8. Layer indices are validated against `n_layers`.
+9. Architecture-comparison headlines require dual-measured contrast
+   (`contrast_claim_ok`); local leakless mini stamps `corpus=local_leakless_mini`
+   with `claims_utility=false` (not licensed VLSBench).
 
 ## Hardware note
 
