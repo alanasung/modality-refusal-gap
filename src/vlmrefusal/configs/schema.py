@@ -265,3 +265,12 @@ class Config:
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     experiment: ExperimentConfig = field(default_factory=ExperimentConfig)
     run: RunConfig = field(default_factory=RunConfig)
+    # Domain knobs set by experiment presets (unified VLM subject policy).
+    force_synthetic_vlm: bool = False
+    vlm_name: str | None = None
+    vlm_role: str = "subject"
+    architecture: str = "unified"
+    allow_modular_as_subject: bool = False
+    modular_contrast: str | None = None
+    quantization: str = "none"
+    steer_alpha: float = 1.0

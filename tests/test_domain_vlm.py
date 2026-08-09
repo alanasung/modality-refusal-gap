@@ -18,7 +18,8 @@ def test_load_synth():
 def test_refusal():
     assert is_refusal("I can't help with that request.")
 def test_no_4bit():
-    import inspect, re
+    import inspect
+    import re
     from vlmrefusal.vlmrefusal import vlm as m
     src = inspect.getsource(m.load_vlm)+inspect.getsource(m._load_transformers_vlm)
     code = re.sub(r"#.*", "", src)

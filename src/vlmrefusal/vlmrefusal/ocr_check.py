@@ -57,7 +57,7 @@ def run_ocr_check(
         class _H:
             backend = "synthetic"
 
-        handle = _H()
+        handle = _H()  # type: ignore[assignment]
 
     gated: list[dict[str, Any]] = []
     n_fail = 0

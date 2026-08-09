@@ -3,7 +3,7 @@
 **Target project.** Locating the Refusal Circuit in Unified, Encoder-Free Vision-Language Models
 **Mentor.** Alessandro Suglia; Rohit Saxena; Francesco Pinto (University of Edinburgh; University of Edinburgh; Google DeepMind)
 **Research areas.** Mechanistic interpretability; AI security; Behavioral evaluation of LLMs
-**Posting.** https://sparai.org/projects/f26/recTF6JBqSCgR6sNf
+**Related posting.** https://sparai.org/projects/f26/recTF6JBqSCgR6sNf
 
 ## Summary
 

@@ -90,6 +90,8 @@ def _refuse_rate(handle: VLMHandle, items: list[dict[str, Any]]) -> float:
                 ids = encode_text(handle, text)
                 gen = handle.model.generate(ids, max_new_tokens=24)
                 tok = getattr(handle.processor, "tokenizer", handle.processor)
+                assert tok is not None
+
                 out = tok.decode(gen[0], skip_special_tokens=True)
                 hits += int(is_refusal(out))
             except Exception:  # noqa: BLE001

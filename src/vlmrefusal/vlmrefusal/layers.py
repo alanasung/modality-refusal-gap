@@ -78,7 +78,7 @@ def run_layers(
         backend=handle.backend,
         best_patch_layer=best.get("layer"),
         best_restoration=(
-            None if best.get("restoration") is None else float(best.get("restoration"))
+            None if best.get("restoration") is None else float(best.get("restoration") or 0)
         ),
         patch_status=patch_status,
         mean_deficit=float(sum(curves["deficit"]) / max(1, len(curves["deficit"]))),

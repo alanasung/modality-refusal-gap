@@ -1,4 +1,3 @@
-from pathlib import Path
 from omegaconf import OmegaConf
 from vlmrefusal.stages import STAGES
 def test_e2e(tmp_path):

@@ -128,6 +128,8 @@ def utility_proxy_score(handle: VLMHandle, n: int = 8) -> float:
                 ids = encode_text(handle, text)
                 out = handle.model.generate(ids, max_new_tokens=16)
                 tok = getattr(handle.processor, "tokenizer", handle.processor)
+                assert tok is not None
+
                 resp = tok.decode(out[0], skip_special_tokens=True)
                 ok += int(not is_refusal(resp))
             except Exception:  # noqa: BLE001

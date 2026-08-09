@@ -1,4 +1,4 @@
-from vlmrefusal.models.device import DeviceInfo, enable_mps_fallback, get_device
+from vlmrefusal.models.device import enable_mps_fallback, get_device
 
 def test_device_info_has_fallback_field():
     info = get_device(None)

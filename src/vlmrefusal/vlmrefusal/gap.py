@@ -29,10 +29,14 @@ def _complete(handle: VLMHandle, item: dict[str, Any]) -> str:
             ids = encode_text(handle, item["text"])
             out = handle.model.generate(ids, max_new_tokens=32)
             tok = getattr(handle.processor, "tokenizer", handle.processor)
+            assert tok is not None
+
             return tok.decode(out[0], skip_special_tokens=True)
         img = Image.open(item["image_path"])
         ids, pixels = encode_image(handle, img, item["text"])
         out = handle.model.generate(input_ids=ids, pixel_values=pixels, max_new_tokens=32)
+        assert handle.processor is not None
+
         return handle.processor.batch_decode(out, skip_special_tokens=True)[0]
     except Exception as exc:  # noqa: BLE001
         raise CompletionError(f"generation failed for {item.get('item_id')}: {exc}") from exc

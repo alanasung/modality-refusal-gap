@@ -4,8 +4,7 @@ Context for coding agents working in this repository.
 
 ## What this is
 
-A pilot research implementation of "Refusal Without a Projector" targeting the SPAR
-Fall 2026 project "Locating the Refusal Circuit in Unified, Encoder-Free Vision-Language Models" (mentor: Alessandro Suglia; Rohit Saxena; Francesco Pinto,
+A pilot research implementation of "Refusal Without a Projector" for the research agenda "Locating the Refusal Circuit in Unified, Encoder-Free Vision-Language Models" (mentor: Alessandro Suglia; Rohit Saxena; Francesco Pinto,
 University of Edinburgh; University of Edinburgh; Google DeepMind).
 
 ## Hard constraints

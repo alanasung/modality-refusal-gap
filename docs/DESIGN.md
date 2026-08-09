@@ -224,7 +224,7 @@ resume, safe-name validation, and hard errors on version mismatch.
 
 Mentor(s): Alessandro Suglia, Rohit Saxena, Francesco Pinto
 Affiliation(s): University of Edinburgh, University of Edinburgh, Google DeepMind
-SPAR posting: https://sparai.org/projects/f26/recTF6JBqSCgR6sNf
+Related posting: https://sparai.org/projects/f26/recTF6JBqSCgR6sNf
 
 ## 21. Glossary
 

@@ -448,11 +448,11 @@ def _load_transformers_vlm(
     )
     text_cfg = getattr(cfg_obj, "text_config", cfg_obj)
     n_layers = int(
-        getattr(cfg_obj, "num_hidden_layers", None)
+        getattr(cfg_obj, "num_hidden_layers", None) or 0
         or getattr(text_cfg, "num_hidden_layers", 12)
     )
     hidden = int(
-        getattr(cfg_obj, "hidden_size", None)
+        getattr(cfg_obj, "hidden_size", None) or 0
         or getattr(text_cfg, "hidden_size", 768)
     )
     return VLMHandle(

@@ -5,7 +5,8 @@ Fails loudly when hooks cannot be attached — never invents random activations.
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import torch
 from PIL import Image

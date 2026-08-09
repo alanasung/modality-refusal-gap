@@ -1,17 +1,14 @@
 <p align="center">
   <h1 align="center">Refusal Without a Projector</h1>
   <p align="center"><strong>If there is no vision projector to blame for the text-to-image safety gap, find out what is actually carrying it.</strong></p>
-  <p align="center">SPAR Fall 2026 · <a href="https://sparai.org/projects/f26/recTF6JBqSCgR6sNf">Locating the Refusal Circuit in Unified, Encoder-Free Vision-Language Models</a></p>
-</p>
+  </p>
 
 ---
 
 ## Overview
 
 This repository implements the pilot and full experimental profiles for
-**Refusal Without a Projector**. The shared engineering spine (config, caching, hooks, metrics,
-ablations, reporting, CI) is generated from a single template so all SPAR Fall
-2026 repos stay aligned on reproducibility.
+**Refusal Without a Projector**. Config, caching, hooks, metrics, ablations, reporting, and CI are built for reproducible local pilots on small open-weight models.
 
 Hypothesis (one line): In a unified, encoder-free VLM the text-derived refusal direction still exists and is still linear, but image-delivered harmful intent lands with systematically lower projection onto it. The deficit accumulates across early decoder layers rather than appearing at one interface, which is the signature that distinguishes a distributed failure from a modular one.
 
@@ -87,20 +84,18 @@ registry and must pass the harness-validation script before any measured claim.
 
 ## Related work
 
-- SPAR Fall 2026 project posting: https://sparai.org/projects/f26/recTF6JBqSCgR6sNf
 - Complexity bar: Critical Data PRIMED-AI / RecursiveJEPA engineering standard
 
 ## Citation
 
 ```bibtex
-@misc{vlmrefusal_spar_f26,
+@misc{vlmrefusal_pilot,
   title        = {Refusal Without a Projector},
   author       = {Alessandro Suglia, Rohit Saxena, Francesco Pinto},
   year         = {2026},
-  howpublished = {SPAR Fall 2026},
+  howpublished = {Research pilot},
   note         = {If there is no vision projector to blame for the text-to-image safety gap, find out what is actually carrying it.},
-  url          = {https://sparai.org/projects/f26/recTF6JBqSCgR6sNf}
-}
+  }
 ```
 
 ## License
