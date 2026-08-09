@@ -46,3 +46,19 @@ Operating judgment: **ship P1 architectural upgrade**; treat Codex science-depth
 - Claim gating tightened where proxies previously looked like evidence.
 - Domain tests green without Hub downloads.
 
+## P6 rigor pass (behavioral patch + direction + hydra)
+
+| Fix | Status |
+|---|---|
+| Behavioral patch refuse-rate delta (`refuse_rate_before/after`, `behavioral_delta`, `patch_score_mode`) | OK (`patching.py`, `layers.py`) |
+| HF unknown image prefix stays `alignment_unresolved` (fail-closed) | OK |
+| Deterministic matched_group parity split (no `__hash__`) | OK (`direction.py`) |
+| Prefer refuse/comply fit; gate fallback via `direction_claims_ok` + `fit_rule` | OK |
+| Holdout AUROC projection→behavior when labels allow | OK |
+| Hydra cumulative top-k with `rerank_after_ablate=true` | OK (`hydra.py`) |
+| Utility/VLSBench stand-ins cannot set `claims_utility=true` | OK (`utility.py`, `vlsbench.py`) |
+| Local mini arithmetic stamped `status=local_mini` | OK |
+| Hub-free P6 domain tests | OK (`tests/test_domain_p6_behavioral.py`) |
+
+Residual (frontier / licensed corpora, not empty stages): real Mono-InternVL weights, licensed VLSBench root, full MMLU/MMBench harness.
+

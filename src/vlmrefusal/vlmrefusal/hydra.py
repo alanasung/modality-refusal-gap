@@ -22,6 +22,12 @@ def hydra_curve(
     *,
     depths: tuple[int, ...] = (1, 2, 3),
 ) -> dict[str, Any]:
+    """Cumulative top-k ablation with re-rank after each depth.
+
+    After ablating the components chosen at depth d, residual direction coords
+    are zeroed and the next depth re-ranks remaining coordinates (hydra
+    re-localization). Stamps ``rerank_after_ablate=true``.
+    """
     harmful = [
         it
         for it in items
@@ -33,17 +39,29 @@ def hydra_curve(
     direction = torch.nn.functional.normalize(direction.detach().float().reshape(-1), dim=0)
     baseline = _refuse_rate(handle, harmful)
     layer = max(0, handle.n_layers - 1)
-    # Rank components once: top-|coord| of the refusal direction (PCA-lite).
-    ranked = torch.argsort(direction.detach().float().abs(), descending=True)
+
+    residual = direction.clone()
+    chosen: list[int] = []
     rows = []
     for k in depths:
-        kk = min(int(k), int(ranked.numel()))
-        component_idx = ranked[:kk].tolist()
+        target = min(int(k), int(direction.numel()))
+        # Re-rank remaining coords on the residual direction after prior ablations.
+        while len(chosen) < target:
+            scores = residual.abs().clone()
+            if chosen:
+                scores[chosen] = -1.0
+            next_idx = int(torch.argmax(scores).item())
+            if next_idx in chosen or float(scores[next_idx]) < 0:
+                break
+            chosen.append(next_idx)
+        kk = len(chosen)
+        component_idx = list(chosen)
+
         if handle.backend == "synthetic":
             old = handle.model.refusal_dir.data.clone()
             ablated = old.clone().cpu().float()
             if kk > 0:
-                ablated[ranked[:kk].cpu()] = 0.0
+                ablated[torch.tensor(chosen, dtype=torch.long)] = 0.0
             handle.model.refusal_dir.data.copy_(
                 ablated.to(device=old.device, dtype=old.dtype)
             )
@@ -51,24 +69,31 @@ def hydra_curve(
                 rate = _refuse_rate(handle, harmful)
             finally:
                 handle.model.refusal_dir.data.copy_(old)
-            component_scheme = "topk_abs_refusal_dir_coords"
+            component_scheme = "cumulative_topk_rerank_refusal_dir"
         else:
-            # Ablate the subspace spanned by the top-k absolute coordinates.
             partial = torch.zeros_like(direction)
             if kk > 0:
-                partial[ranked[:kk]] = direction[ranked[:kk]]
+                idx = torch.tensor(chosen, dtype=torch.long)
+                partial[idx] = direction[idx]
             remover = attach_zero_direction(handle, partial, layer=layer)
             try:
                 rate = _refuse_rate(handle, harmful)
             finally:
                 remover()
-            component_scheme = "topk_abs_direction_coords"
+            component_scheme = "cumulative_topk_rerank_direction_coords"
+
+        # Update residual for next depth's re-rank.
+        residual = direction.clone()
+        if chosen:
+            residual[torch.tensor(chosen, dtype=torch.long)] = 0.0
+
         rows.append(
             {
                 "ablation_depth": k,
                 "n_components_ablated": kk,
                 "component_indices": component_idx[: min(8, len(component_idx))],
                 "component_scheme": component_scheme,
+                "rerank_after_ablate": True,
                 "refusal_rate": rate,
                 "recovery_vs_baseline": rate / baseline if baseline > 0 else None,
                 "architecture": handle.architecture,
@@ -81,7 +106,9 @@ def hydra_curve(
         "architectural_claim_answered": handle.architectural_claim_answered,
         "model": handle.name,
         "architecture": handle.architecture,
-        "component_ranking": "topk_abs_direction_coords",
+        "component_ranking": "cumulative_topk_rerank_after_ablate",
+        "rerank_after_ablate": True,
+        "component_scheme": "cumulative_topk_rerank",
         "curve": rows,
     }
 
@@ -144,5 +171,7 @@ def run_hydra(
         architecture=handle.architecture,
         architectural_claim_answered=handle.architectural_claim_answered,
         baseline_refusal_rate=curve["baseline_refusal_rate"],
+        rerank_after_ablate=True,
+        component_scheme=curve.get("component_scheme"),
         status="ok",
     )

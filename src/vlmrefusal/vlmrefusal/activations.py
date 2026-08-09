@@ -86,8 +86,9 @@ def capture_hidden_states(
                 except TypeError:
                     handle.model(input_ids=ids)
             # Unknown image token count without processor metadata; report 0 and
-            # require callers to treat alignment as best-effort.
-            image_len = 0
+            # require callers to treat alignment as best-effort. FakeHF adapters
+            # may stamp ``image_prefix_len`` explicitly for measurable tests.
+            image_len = int(getattr(handle.model, "image_prefix_len", 0) or 0)
     finally:
         for h in handles:
             h.remove()

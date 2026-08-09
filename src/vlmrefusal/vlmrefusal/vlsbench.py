@@ -107,6 +107,7 @@ def run_vlsbench(
     refusal_rate = (
         sum(1 for r in harm if r["refused"]) / len(harm) if harm else None
     )
+    claims_benchmark = bool(real) and status in {"ok", "partial"}
     out_path = write_json(
         artifacts / "vlsbench.json",
         {
@@ -115,9 +116,12 @@ def run_vlsbench(
             "refusal_rate_harmful": refusal_rate,
             "corpus": corpus,
             "errors": errors,
+            "claims_utility": False,
+            "claims_vlsbench": claims_benchmark,
             "note": (
                 "Set VLSBENCH_ROOT to a local leakless corpus for reportable numbers; "
-                "the stand-in only proves the arm is wired."
+                "the stand-in only proves the arm is wired and must not set "
+                "claims_utility/claims_vlsbench=true."
             ),
         },
     )
@@ -130,4 +134,6 @@ def run_vlsbench(
         refusal_rate_harmful=refusal_rate,
         corpus=corpus,
         status=status,
+        claims_utility=False,
+        claims_vlsbench=claims_benchmark,
     )

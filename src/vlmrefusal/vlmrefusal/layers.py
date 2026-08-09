@@ -51,6 +51,16 @@ def run_layers(
 
     scored = [r for r in sweep if r.get("restoration") is not None]
     best = max(scored, key=lambda r: r.get("restoration", 0.0)) if scored else {"layer": None, "restoration": None}
+    behav = [
+        r
+        for r in sweep
+        if r.get("behavioral_delta") is not None and r.get("status") == "ok"
+    ]
+    best_behav = (
+        max(behav, key=lambda r: abs(float(r.get("behavioral_delta") or 0.0)))
+        if behav
+        else {}
+    )
     path = write_json(
         artifacts / "layers.json",
         {
@@ -59,6 +69,10 @@ def run_layers(
             "patch_status": patch_status,
             "best_patch_layer": best.get("layer"),
             "best_restoration": best.get("restoration"),
+            "best_behavioral_layer": best_behav.get("layer"),
+            "best_behavioral_delta": best_behav.get("behavioral_delta"),
+            "patch_score_mode": best_behav.get("patch_score_mode")
+            or (sweep[0].get("patch_score_mode") if sweep else None),
             "backend": handle.backend,
             "architecture": handle.architecture,
             "architectural_claim_answered": handle.architectural_claim_answered,
@@ -66,7 +80,9 @@ def run_layers(
                 "Cross-modal patching aligns the shared text token span; image "
                 "prefix tokens are never overwritten by text residuals. "
                 "HF models with unknown image-prefix length return "
-                "status=alignment_unresolved rather than inventing zeros."
+                "status=alignment_unresolved rather than inventing zeros. "
+                "Patch score includes refuse-rate delta (behavioral_delta), "
+                "not only cosine restoration."
             ),
         },
     )
@@ -80,6 +96,13 @@ def run_layers(
         best_restoration=(
             None if best.get("restoration") is None else float(best.get("restoration") or 0)
         ),
+        best_behavioral_delta=(
+            None
+            if best_behav.get("behavioral_delta") is None
+            else float(best_behav.get("behavioral_delta") or 0)
+        ),
+        patch_score_mode=best_behav.get("patch_score_mode")
+        or (sweep[0].get("patch_score_mode") if sweep else None),
         patch_status=patch_status,
         mean_deficit=float(sum(curves["deficit"]) / max(1, len(curves["deficit"]))),
     )
