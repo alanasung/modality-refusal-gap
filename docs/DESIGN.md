@@ -1,14 +1,14 @@
-# Design Document: Refusal Without a Projector
+# Design Document: Why Visual Jailbreaks Persist After the Projector Disappears
 
 ## 1. Purpose
 
-This document is the method contract for **Refusal Without a Projector**. It specifies what is
+This document is the method contract for **Why Visual Jailbreaks Persist After the Projector Disappears**. It specifies what is
 measured, how measurement is instrumented, which artifacts are produced, and
 which claims are out of scope for the pilot profile.
 
 One-liner: If there is no vision projector to blame for the text-to-image safety gap, find out what is actually carrying it.
 
-Hypothesis: In a unified, encoder-free VLM the text-derived refusal direction still exists and is still linear, but image-delivered harmful intent lands with systematically lower projection onto it. The deficit accumulates across early decoder layers rather than appearing at one interface, which is the signature that distinguishes a distributed failure from a modular one.
+Hypothesis: Removing the vision projector does not remove multimodal refusal gaps — the failure redistributes across early decoder computation and can be partially ablated or steered.
 
 ## 2. Scope
 

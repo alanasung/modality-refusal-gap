@@ -1,4 +1,4 @@
-"""Experiment stages for Refusal Without a Projector."""
+"""Experiment stages for Why Visual Jailbreaks Persist After the Projector Disappears."""
 
 from __future__ import annotations
 

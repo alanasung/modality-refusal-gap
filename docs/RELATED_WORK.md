@@ -1,6 +1,6 @@
 # Related work
 
-This note situates **Refusal Circuits in Unified Vision-Language Models** against related literature.
+This note situates **Why Visual Jailbreaks Persist After the Projector Disappears** against related literature.
 
 ## Positioning
 

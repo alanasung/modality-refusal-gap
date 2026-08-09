@@ -3,7 +3,7 @@
 See [CLAUDE.md](CLAUDE.md) for the full build instructions; this file exists so
 that agents which look for `AGENTS.md` find the same context.
 
-Project: Refusal Without a Projector
+Project: Why Visual Jailbreaks Persist After the Projector Disappears
 Package: `src/vlmrefusal`
 Entry point: `python -m vlmrefusal --help`
 

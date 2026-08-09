@@ -1,15 +1,15 @@
 <p align="center">
-  <h1 align="center">Refusal Circuits in Unified Vision-Language Models</h1>
-  <p align="center"><strong>Locate the text-to-vision safety gap when there is no projector left to blame — and try to patch it.</strong></p>
+  <h1 align="center">Why Visual Jailbreaks Persist After the Projector Disappears</h1>
+  <p align="center"><strong>Trace text-versus-image refusal gaps inside encoder-free VLMs, rank redundant refusal components, and test lightweight patches.</strong></p>
   </p>
 
 ---
 
 ## Overview
 
-This repository implements experimental profiles for **Refusal Circuits in Unified Vision-Language Models**. Config, caching, hooks, metrics, ablations, reporting, and CI are built for reproducible local pilots on small open-weight models.
+This repository implements experimental profiles for **Why Visual Jailbreaks Persist After the Projector Disappears**. Config, caching, hooks, metrics, ablations, reporting, and CI are built for reproducible local pilots on small open-weight models.
 
-Hypothesis (one line): In a unified, encoder-free VLM the text-derived refusal direction still exists and is still linear, but image-delivered harmful intent lands with systematically lower projection onto it. The deficit accumulates across early decoder layers rather than appearing at one interface, which is the signature that distinguishes a distributed failure from a modular one.
+Hypothesis (one line): Removing the vision projector does not remove multimodal refusal gaps — the failure redistributes across early decoder computation and can be partially ablated or steered.
 
 ## Motivation
 
@@ -86,8 +86,8 @@ registry and must pass the harness-validation script before any measured claim.
 ## Citation
 
 ```bibtex
-@misc{unified_vlm_refusal_pilot,
-  title        = {Refusal Circuits in Unified Vision-Language Models},
+@misc{visual_jailbreaks_no_projector,
+  title        = {Why Visual Jailbreaks Persist After the Projector Disappears},
   author       = {Alana Sung},
   year         = {2026},
   howpublished = {Technical report},

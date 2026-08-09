@@ -4,7 +4,7 @@ Context for coding agents working in this repository.
 
 ## What this is
 
-Research implementation of "Refusal Circuits in Unified Vision-Language Models".
+Research implementation of "Why Visual Jailbreaks Persist After the Projector Disappears".
 
 ## Hard constraints
 

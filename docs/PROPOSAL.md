@@ -1,6 +1,6 @@
-# Refusal Circuits in Unified Vision-Language Models
+# Why Visual Jailbreaks Persist After the Projector Disappears
 
-**Target project.** Locating the Refusal Circuit in Unified, Encoder-Free Vision-Language Models
+**Target project.** Why Visual Jailbreaks Persist After the Projector Disappears
 **Research areas.** Mechanistic interpretability; AI security; Behavioral evaluation of LLMs
 
 ## Summary
