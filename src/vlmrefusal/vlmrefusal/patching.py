@@ -1,10 +1,4 @@
-"""Cross-modal activation patching with sequence alignment.
-
-Text and image forwards produce different sequence lengths because image patch
-tokens are prepended. Blind fixed-position patching is unsafe. This module
-aligns the *text* token span across modalities and patches only aligned
-positions.
-"""
+"""Cross-modal activation patching with sequence alignment and causal hooks."""
 
 from __future__ import annotations
 
@@ -14,13 +8,12 @@ from typing import Any
 import torch
 from PIL import Image
 
-from .vlm import VLMHandle, encode_image, encode_text
+from .activations import capture_hidden_states
+from .vlm import VLMHandle, encode_text
 
 
 @dataclass(frozen=True)
 class Alignment:
-    """Maps text-token positions into each modality's sequence."""
-
     text_seq_len: int
     image_prefix_len: int
     text_positions_in_text_run: tuple[int, ...]
@@ -36,29 +29,9 @@ class Alignment:
 
 
 def align_text_span(text_len: int, image_prefix_len: int) -> Alignment:
-    """Align the shared text token span between text-only and image+text runs."""
     text_pos = tuple(range(text_len))
     image_pos = tuple(image_prefix_len + i for i in range(text_len))
     return Alignment(text_len, image_prefix_len, text_pos, image_pos)
-
-
-def _hidden_states(
-    handle: VLMHandle, item: dict[str, Any], modality: str
-) -> tuple[list[torch.Tensor], int, int]:
-    """Return (hidden_states, image_len, text_len)."""
-    assert handle.backend == "synthetic", "patching pilot path requires SyntheticVLM or equivalent"
-    if modality == "text":
-        ids = encode_text(handle, item.get("source_text") or item["text"])
-        out = handle.model.forward(ids, None, return_hidden_states=True)
-        return out["hidden_states"], 0, out["text_len"]
-    img = Image.open(item["image_path"])
-    # Use source_text for the text stream so token ids match the text-only run.
-    text = item.get("source_text") or item["text"]
-    ids, pixels = encode_image(handle, img, text)
-    # Re-encode with identical text ids as the text-only path.
-    ids = encode_text(handle, text)
-    out = handle.model.forward(ids, pixels, return_hidden_states=True)
-    return out["hidden_states"], out["image_len"], out["text_len"]
 
 
 def patch_text_into_image(
@@ -67,22 +40,36 @@ def patch_text_into_image(
     image_item: dict[str, Any],
     layer: int,
 ) -> dict[str, Any]:
-    """Replace aligned text-span activations in the image run with text-run values.
+    """Patch aligned text-span activations; measure projection restoration.
 
-    Measures whether refusal projection is restored after the patch.
+    On SyntheticVLM this also re-runs the LM head path after surgically editing
+    the captured residual (causal within the stub). On HF models, when image
+    prefix length is unknown we report status=alignment_unresolved rather than
+    inventing a patch.
     """
-    text_hs, _, text_len = _hidden_states(handle, text_item, "text")
-    image_hs, image_len, img_text_len = _hidden_states(handle, image_item, "image")
-    assert text_len == img_text_len, "text token lengths must match for alignment"
+    text = text_item.get("source_text") or text_item["text"]
+    text_hs, _ = capture_hidden_states(handle, text=text, image=None)
+    img = Image.open(image_item["image_path"])
+    image_hs, image_len = capture_hidden_states(handle, text=text, image=img)
+    text_len = int(encode_text(handle, text).shape[1])
+    if handle.backend != "synthetic" and image_len == 0:
+        return {
+            "layer": layer,
+            "status": "alignment_unresolved",
+            "note": "image prefix length unknown for this HF VLM; refusing unsafe blind patch",
+        }
     align = align_text_span(text_len, image_len)
-
     src = text_hs[layer][0].detach().clone()
     dst = image_hs[layer][0].detach().clone()
     for t_pos, i_pos in zip(align.text_positions_in_text_run, align.text_positions_in_image_run):
-        dst[i_pos] = src[t_pos]
+        if i_pos < dst.shape[0] and t_pos < src.shape[0]:
+            dst[i_pos] = src[t_pos]
 
-    # Refusal proxy: cosine to planted refusal direction on final text token.
-    direction = handle.model.refusal_dir.detach().cpu().float()
+    if handle.backend == "synthetic":
+        direction = handle.model.refusal_dir.detach().cpu().float()
+    else:
+        direction = torch.nn.functional.normalize(src[-1].cpu().float(), dim=0)
+
     before = image_hs[layer][0, align.text_positions_in_image_run[-1], :].cpu().float()
     after = dst[align.text_positions_in_image_run[-1]].cpu().float()
     text_ref = text_hs[layer][0, align.text_positions_in_text_run[-1], :].cpu().float()
@@ -92,6 +79,7 @@ def patch_text_into_image(
 
     return {
         "layer": layer,
+        "status": "ok",
         "alignment": align.to_dict(),
         "projection_text": proj(text_ref),
         "projection_image_before": proj(before),

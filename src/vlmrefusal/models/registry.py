@@ -21,7 +21,7 @@ from typing import Literal
 
 __all__ = ["MODEL_REGISTRY", "Family", "ModelSpec", "get_model_spec", "list_models", "smallest"]
 
-Family = Literal["qwen", "llama", "gpt2", "pythia", "olmo", "gemma"]
+Family = Literal["qwen", "llama", "gpt2", "pythia", "olmo", "gemma", "vlm_unified", "vlm_modular"]
 
 
 @dataclass(frozen=True)
@@ -168,9 +168,59 @@ _SPECS: tuple[tuple[str, ModelSpec], ...] = (
             fits_on_m4=False,
             revision="main",
             notes=(
-                "Multimodal wrapper: the text stack is under config.text_config and "
-                "model.language_model.layers. Full-profile only, needs a real GPU."
+                "NOT encoder-free (SigLIP vision tower). Kept only as a negative "
+                "example — do not use as the unified subject for this project."
             ),
+        ),
+    ),
+    (
+        "mono-internvl-2b",
+        ModelSpec(
+            name="OpenGVLab/Mono-InternVL-2B",
+            params_b=2.0,
+            family="vlm_unified",
+            fits_on_m4=True,
+            revision="main",
+            notes=(
+                "Pilot unified subject: monolithic MLLM, image patches into the "
+                "decoder, no separate vision tower. Requires trust_remote_code."
+            ),
+        ),
+    ),
+    (
+        "fuyu-8b",
+        ModelSpec(
+            name="adept/fuyu-8b",
+            params_b=8.0,
+            family="vlm_unified",
+            fits_on_m4=False,
+            revision="main",
+            notes=(
+                "Full-profile encoder-free subject (linear patch projection into "
+                "the decoder). ~16 GB fp16; GPU / large-RAM only."
+            ),
+        ),
+    ),
+    (
+        "qwen2-vl-2b",
+        ModelSpec(
+            name="Qwen/Qwen2-VL-2B-Instruct",
+            params_b=2.0,
+            family="vlm_modular",
+            fits_on_m4=True,
+            revision="main",
+            notes="Modular contrast arm only — never a substitute unified subject.",
+        ),
+    ),
+    (
+        "smolvlm-500m",
+        ModelSpec(
+            name="HuggingFaceTB/SmolVLM-500M-Instruct",
+            params_b=0.5,
+            family="vlm_modular",
+            fits_on_m4=True,
+            revision="main",
+            notes="Smoke / wiring only. Modular. Not an architectural subject.",
         ),
     ),
 )

@@ -22,7 +22,9 @@ reportable rather than a dead end.
 1. How large is the text-to-image refusal gap on matched content, both for typographic renderings and for VLSBench leakless items where the harmful intent is genuinely visual and not recoverable from the text alone?
 2. Does the refusal direction extracted from text transfer to the visual channel, measured by projection of image-prompt activations onto it?
 3. Where does the deficit accumulate, layer by layer, and does patching text-derived activations into the image run restore refusal?
-4. What does any steering fix cost on general capability, measured on MMBench rather than only on benign-image over-refusal?
+4. Is the gap larger, and localized differently, in a unified encoder-free model than in a modular encoder-plus-projector model of matched scale? (explicit `contrast` stage)
+5. After ablating the top-ranked refusal component, does a redundant pathway reactivate (hydra effect), and does that differ by architecture? (explicit `hydra` stage)
+6. What does any steering fix cost on general capability, measured on MMBench and MMLU (pilot: local proxies; full: real subsets), not only on benign-image over-refusal?
 
 ## Method
 
@@ -50,21 +52,25 @@ reportable rather than a dead end.
 
 ## Model plan
 
+An earlier draft named Gemma-3 and Janus-Pro as unified candidates. Both carry a
+SigLIP vision encoder, so neither is encoder-free and neither can answer the
+mentor's question. They are replaced with genuinely monolithic / encoder-free
+models:
+
 | role | choice |
 |---|---|
-| `unified_primary` | google/gemma-3-4b-it, which routes image patches directly into the shared decoder and is the smallest genuinely unified candidate that fits in M4 unified memory at 4-bit or bf16 with offload |
-| `unified_fallback` | deepseek-ai/Janus-Pro-1B as a smaller unified alternative if Gemma exceeds memory |
-| `modular_baseline` | llava-hf/llava-interleave-qwen-0.5b-hf, used strictly as the modular contrast arm |
-| `escalation` | If neither unified model runs locally, the config supports a single rented-GPU run; the repo records this as a known blocker rather than quietly substituting the modular baseline. |
-
+| `unified_primary` (pilot) | `OpenGVLab/Mono-InternVL-2B` — monolithic MLLM; image patches into the decoder; no separate vision tower; ~2B; `trust_remote_code` |
+| `unified_full_profile` | `adept/fuyu-8b` — encoder-free by construction (linear patch projection into the decoder); ~16 GB fp16; GPU / large-RAM |
+| `modular_contrast` | `Qwen/Qwen2-VL-2B-Instruct` — matched-scale encoder+projector baseline only |
+| `smoke` | `HuggingFaceTB/SmolVLM-500M-Instruct` — wiring tests; never an architectural subject |
+| `honesty_rule` | If the unified subject fails to load, `architectural_claim_answered=false` and the writeup says the architectural question is unanswered. Modular results are never reported as though they settled it. |
 
 ## Feasibility
 
 The pilot is written for an Apple M4 with 10 cores, unified memory, the PyTorch
-MPS backend, no CUDA device, and no configured API keys. Model choices are
-capped accordingly (Qwen/Qwen2.5-1.5B-Instruct). The
-`full` profile documents the scaled-up version of the same experiment for when a
-real GPU is available, so the reduction in scale is explicit rather than hidden.
+MPS backend, no CUDA device, and no configured API keys. The pilot subject is
+Mono-InternVL-2B (~2B). The `full` profile uses Fuyu-8B on rented GPU. Smoke uses
+SyntheticVLM / SmolVLM and is explicitly non-reportable.
 
 ## Relationship to the posting
 

@@ -1,15 +1,18 @@
-# ALIGNMENT — vlm-refusal-circuit
+# ALIGNMENT — vlm-refusal-circuit (P1 upgrade)
 
 ## Codex GPT-5 Sol
-- Verdict: MINOR_DRIFT
-- Summary: The proposal is tightly aligned with the core refusal-localization and intervention project, but it leaves out the explicit hydra-effect investigation and does not fully operationalize the requested comparison with modular architectures.
+- Command: `codex exec -m gpt-5.6-sol -s read-only` via `orchestration/codex_gate.py align vlm-refusal-circuit`
+- Verdict: **MINOR_DRIFT**
+- Summary: Closely reproduces the mentor's empirical, mechanistic, comparative, hydra, and intervention agenda; fixable gaps around single-direction linearity tests, logit-lens mentee thread, and feasibility assignment.
 
-## Grok
-- Verdict: MATERIAL_DRIFT
-- Summary: Right mechanistic questions for unified VLMs, but the model plan fails to commit to a runnable encoder-free unified subject — which is the whole posting.
-- Detail: see `orchestration/out/grok/align/vlm-refusal-circuit.md` and `vlm-refusal-circuit.json`.
+## Grok (`cursor-grok-4.5-high-fast`)
+- Artifact: `orchestration/out/grok/align/vlm-refusal-circuit.p1.md`
+- Verdict: **ALIGNED_WITH_NOTES** (prior MATERIAL_DRIFT resolved)
+- Summary: Named unified subjects + honesty rule + hydra/contrast RQs resolve the prior material drift; leftover notes are stage depth and Mono vs Gemma-4 proxying.
 
 ## Reconciliation
-Codex MINOR_DRIFT vs Grok MATERIAL_DRIFT on missing unified encoder-free subject + hydra RQ. Engineering pilot is runnable via SyntheticVLM/SmolVLM; research claim needs an explicit unified-model plan or scoped restatement. Proceed only with that caveat.
+- **Agree:** The research question is now the mentor's (unified encoder-free refusal localization), not a modular substitute.
+- **Disagree on severity:** Codex MINOR_DRIFT vs Grok ALIGNED_WITH_NOTES. Operating judgment: **ALIGNED_WITH_NOTES** — the architectural commitment is in place; remaining notes are depth, not wrong question.
+- **Accepted notes:** Mono-InternVL is a feasible local monolithic proxy; Fuyu-8B is the stricter full-profile encoder-free subject. Logit-lens mentee thread optional.
 
-Operating judgment: proceed with unified-VLM caveat.
+Operating judgment: proceed.

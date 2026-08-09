@@ -1,8 +1,7 @@
 # @package _global_
 #
-# The smallest configuration that still touches every stage. It exists so CI has
-# something end-to-end to run in under a minute, and so a fresh clone can prove
-# its plumbing before anything is downloaded. Nothing it produces is reportable.
+# Plumbing check only. Uses SyntheticVLM or tiny modular SmolVLM wiring — never
+# reported as answering the unified architectural question.
 
 defaults:
   - base_experiment
@@ -16,12 +15,25 @@ defaults:
 experiment:
   name: smoke
   task_id: E08
-  description: Minimal end-to-end run over synthetic items. Plumbing check, not a result.
-  stages: [render, matched, ocr_check, direction, layers, vlsbench, utility]
+  description: Minimal end-to-end plumbing check. Not a result; not an architectural claim.
+  stages: [render, matched, ocr_check, direction, layers, vlsbench, contrast, hydra, utility]
   tags: [smoke, synthetic, not-a-result]
+
+model:
+  name: HuggingFaceTB/SmolVLM-500M-Instruct
+  dtype: FLOAT32
+  device: CPU
+  batch_size: 1
+  trust_remote_code: true
 
 data:
   n_items: 16
+
+force_synthetic_vlm: true
+vlm_name: HuggingFaceTB/SmolVLM-500M-Instruct
+vlm_role: smoke
+architecture: synthetic
+allow_modular_as_subject: false
 
 cache:
   namespace: smoke

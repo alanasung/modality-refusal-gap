@@ -22,7 +22,8 @@ def test_synthetic_layers():
     assert SyntheticVLM().n_layers == 4
 
 def test_stage_count():
-    assert len(STAGES)==7
+    assert len(STAGES) == 9
+    assert "contrast" in STAGES and "hydra" in STAGES
 
 def test_force_synth_default_path():
     h = load_vlm(SimpleNamespace(force_synthetic_vlm=True, model=SimpleNamespace(name="x", device="cpu", dtype="float32")))
@@ -46,10 +47,13 @@ def test_generate_text_benign():
     text = m.generate_text(torch.randint(0,10,(1,5)), None, harmful=False)
     assert isinstance(text, str)
 
-def test_pilot_yaml_synthetic_flag():
+def test_pilot_yaml_unified_subject():
     text = (Path(__file__).resolve().parents[1]/"configs"/"experiment"/"pilot.yaml").read_text()
-    assert "force_synthetic_vlm: true" in text
+    assert "force_synthetic_vlm: false" in text
+    assert "architecture: unified" in text
+    assert "OpenGVLab/Mono-InternVL-2B" in text
     assert "quantization: none" in text
+    assert "allow_modular_as_subject: false" in text
 
 def test_stages_order():
     assert list(STAGES.keys())[0]=="render" and list(STAGES.keys())[-1]=="utility"

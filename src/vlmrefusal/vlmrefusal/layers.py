@@ -34,23 +34,39 @@ def run_layers(
         groups.setdefault(it["matched_group"], {})[it["modality"]] = it
     pair = next(g for g in groups.values() if "text" in g and "image" in g)
 
-    if handle.backend == "synthetic":
+    try:
         sweep = layerwise_patch_sweep(handle, pair["text"], pair["image"])
-    else:
-        sweep = [{"layer": i, "restoration": 0.0, "note": "real-VLM patching not wired"} for i in range(handle.n_layers)]
+        patch_status = "ok"
+    except Exception as exc:  # noqa: BLE001
+        sweep = [
+            {
+                "layer": i,
+                "restoration": None,
+                "status": "unavailable",
+                "error": str(exc),
+            }
+            for i in range(handle.n_layers)
+        ]
+        patch_status = "unavailable"
 
-    best = max(sweep, key=lambda r: r.get("restoration", 0.0))
+    scored = [r for r in sweep if r.get("restoration") is not None]
+    best = max(scored, key=lambda r: r.get("restoration", 0.0)) if scored else {"layer": None, "restoration": None}
     path = write_json(
         artifacts / "layers.json",
         {
             "logit_lens": curves,
             "patch_sweep": sweep,
+            "patch_status": patch_status,
             "best_patch_layer": best.get("layer"),
             "best_restoration": best.get("restoration"),
             "backend": handle.backend,
+            "architecture": handle.architecture,
+            "architectural_claim_answered": handle.architectural_claim_answered,
             "alignment_note": (
                 "Cross-modal patching aligns the shared text token span; image "
-                "prefix tokens are never overwritten by text residuals."
+                "prefix tokens are never overwritten by text residuals. "
+                "HF models with unknown image-prefix length return "
+                "status=alignment_unresolved rather than inventing zeros."
             ),
         },
     )
@@ -61,6 +77,9 @@ def run_layers(
         artifact=str(path),
         backend=handle.backend,
         best_patch_layer=best.get("layer"),
-        best_restoration=float(best.get("restoration", 0.0)),
+        best_restoration=(
+            None if best.get("restoration") is None else float(best.get("restoration"))
+        ),
+        patch_status=patch_status,
         mean_deficit=float(sum(curves["deficit"]) / max(1, len(curves["deficit"]))),
     )

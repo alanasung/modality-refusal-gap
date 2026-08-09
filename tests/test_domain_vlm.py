@@ -30,3 +30,60 @@ def test_encode(tmp_path):
     h = load_vlm(cfg)
     ids, pix = encode_image(h, Image.new("RGB",(64,64)), "hi")
     assert pix.shape[1]==3
+
+def test_classify_unified():
+    from vlmrefusal.vlmrefusal.vlm import classify_architecture, UNIFIED_PRIMARY
+    assert classify_architecture(UNIFIED_PRIMARY) == "unified"
+    assert classify_architecture("HuggingFaceTB/SmolVLM-500M-Instruct") == "modular"
+
+def test_modular_refused_as_unified_subject():
+    cfg = SimpleNamespace(
+        force_synthetic_vlm=False,
+        vlm_name="HuggingFaceTB/SmolVLM-500M-Instruct",
+        architecture="modular",
+        vlm_role="subject",
+        allow_modular_as_subject=False,
+        model=SimpleNamespace(name="HuggingFaceTB/SmolVLM-500M-Instruct", device="cpu", dtype="float32", revision=None, trust_remote_code=True),
+    )
+    h = load_vlm(cfg)
+    assert h.backend == "synthetic"
+    assert h.architectural_claim_answered is False
+    assert h.role == "unanswered"
+
+def test_force_synthetic_default_is_false_in_loader(monkeypatch):
+    import vlmrefusal.vlmrefusal.vlm as vlm_mod
+    calls = []
+    def boom(name, cfg, info, arch):
+        calls.append(name)
+        raise OSError("hub unavailable in unit test")
+    monkeypatch.setattr(vlm_mod, "_load_transformers_vlm", boom)
+    cfg = SimpleNamespace(
+        vlm_name="OpenGVLab/Mono-InternVL-2B",
+        architecture="unified",
+        vlm_role="subject",
+        model=SimpleNamespace(name="OpenGVLab/Mono-InternVL-2B", device="cpu", dtype="float32", revision=None, trust_remote_code=True),
+    )
+    h = load_vlm(cfg)
+    assert calls, "loader should attempt unified Hub load before synthetic fallback"
+    assert h.architecture == "synthetic"
+    assert h.architectural_claim_answered is False
+    assert h.role == "unanswered"
+
+def test_architectures_contrast_summary():
+    from vlmrefusal.vlmrefusal.architectures import contrast_summary
+    from vlmrefusal.vlmrefusal.vlm import VLMHandle, SimpleDevice
+    import torch
+    fake = VLMHandle(
+        name="OpenGVLab/Mono-InternVL-2B",
+        backend="transformers",
+        model=None,
+        processor=None,
+        device=SimpleDevice(torch.device("cpu"), torch.float32, "cpu"),
+        n_layers=1,
+        hidden_size=8,
+        architecture="unified",
+        role="subject",
+        architectural_claim_answered=True,
+    )
+    s = contrast_summary({"unified": fake, "modular": None})
+    assert s["architectural_claim_answered"] is True

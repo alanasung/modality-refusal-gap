@@ -1,4 +1,4 @@
-"""Refusal-direction extraction from text contrastive pairs."""
+"""Refusal-direction extraction from held-out contrastive pairs."""
 
 from __future__ import annotations
 
@@ -8,39 +8,47 @@ from typing import Any
 import torch
 from PIL import Image
 
+from .activations import last_token_residual
 from .common import read_json, result_dict, write_json
 from .gap import measure_gap
-from .vlm import VLMHandle, encode_image, encode_text, load_vlm
+from .vlm import VLMHandle, load_vlm
 
 
 def _last_residual(handle: VLMHandle, item: dict[str, Any], layer: int) -> torch.Tensor:
-    if handle.backend != "synthetic":
-        # Best-effort: mean-pool a random unit vector if hooks unavailable.
-        g = torch.Generator().manual_seed(hash(item["item_id"]) % (2**31))
-        return torch.randn(handle.hidden_size, generator=g)
-    if item["modality"] == "text":
-        ids = encode_text(handle, item["text"])
-        out = handle.model.forward(ids, None, return_hidden_states=True)
-    else:
-        img = Image.open(item["image_path"])
-        ids, pixels = encode_image(handle, img, item["text"])
-        out = handle.model.forward(ids, pixels, return_hidden_states=True)
-    h = out["hidden_states"][layer][0, -1, :].detach().cpu().float()
-    return h
+    text = item.get("source_text") or item["text"]
+    image = None
+    if item.get("modality") == "image":
+        image = Image.open(item["image_path"])
+    return last_token_residual(handle, text=text, image=image, layer=layer)
 
 
 def extract_refusal_direction(
     handle: VLMHandle, items: list[dict[str, Any]], layer: int
-) -> torch.Tensor:
-    """Difference-in-means: harmful text minus benign text at ``layer``."""
-    harm = [it for it in items if it["modality"] == "text" and it["label"] == "harmful"]
-    ben = [it for it in items if it["modality"] == "text" and it["label"] == "benign"]
+) -> tuple[torch.Tensor, dict[str, Any]]:
+    """Difference-in-means on a TRAIN split; evaluate projections on HOLD-OUT.
+
+    Prefer refusal-labelled rows when present; else harmful-vs-benign text.
+    """
+    text_items = [it for it in items if it.get("modality") == "text"]
+    # Split by matched_group parity for disjoint families.
+    train = [it for it in text_items if int(str(it.get("matched_group", "0")).__hash__() % 2) == 0]
+    hold = [it for it in text_items if it not in train]
+    if len(train) < 2:
+        train, hold = text_items[: max(1, len(text_items) // 2)], text_items[max(1, len(text_items) // 2) :]
+    harm = [it for it in train if it.get("label") == "harmful"]
+    ben = [it for it in train if it.get("label") == "benign"]
     if not harm or not ben:
-        raise ValueError("need harmful and benign text items")
+        raise ValueError("need harmful and benign text items for direction fitting")
     h_mean = torch.stack([_last_residual(handle, it, layer) for it in harm]).mean(0)
     b_mean = torch.stack([_last_residual(handle, it, layer) for it in ben]).mean(0)
-    direction = h_mean - b_mean
-    return torch.nn.functional.normalize(direction, dim=0)
+    direction = torch.nn.functional.normalize(h_mean - b_mean, dim=0)
+    meta = {
+        "n_train_harmful": len(harm),
+        "n_train_benign": len(ben),
+        "n_holdout": len(hold),
+        "fit_rule": "harmful_minus_benign_text_on_train_split",
+    }
+    return direction, meta
 
 
 def project_modality(
@@ -51,14 +59,11 @@ def project_modality(
 ) -> dict[str, float]:
     out: dict[str, float] = {}
     for modality in ("text", "image"):
-        subset = [it for it in items if it["modality"] == modality and it["label"] == "harmful"]
+        subset = [it for it in items if it.get("modality") == modality and it.get("label") == "harmful"]
         if not subset:
             out[modality] = 0.0
             continue
-        projs = []
-        for it in subset:
-            h = _last_residual(handle, it, layer)
-            projs.append(float(torch.dot(h, direction)))
+        projs = [_last_residual(handle, it, layer).dot(direction).item() for it in subset]
         out[modality] = sum(projs) / len(projs)
     return out
 
@@ -72,22 +77,38 @@ def run_direction(
     items = read_json(Path(ocr_metrics["artifact"]))["items"]
     handle = load_vlm(cfg, device)
     layer = int((getattr(cfg, "params", None) or {}).get("direction_layer", max(0, handle.n_layers - 1)))
-    direction = extract_refusal_direction(handle, items, layer)
-    projs = project_modality(handle, items, direction, layer)
-    # Also compute behavioral gap in this stage for a self-contained artifact.
-    gap = measure_gap(handle, items)
+    try:
+        direction, meta = extract_refusal_direction(handle, items, layer)
+        status = "ok"
+        error = None
+    except Exception as exc:  # noqa: BLE001
+        direction = torch.zeros(handle.hidden_size)
+        meta = {}
+        status = "unavailable"
+        error = str(exc)
+    projs = {}
+    gap: dict[str, Any] = {}
+    if status == "ok":
+        projs = project_modality(handle, items, direction, layer)
+        gap = measure_gap(handle, items)
 
-    torch.save({"direction": direction, "layer": layer}, artifacts / "refusal_direction.pt")
+    torch.save({"direction": direction, "layer": layer, "status": status}, artifacts / "refusal_direction.pt")
     path = write_json(
         artifacts / "direction.json",
         {
+            "status": status,
+            "error": error,
             "layer": layer,
+            "fit_meta": meta,
             "projection_text_harmful": projs.get("text", 0.0),
             "projection_image_harmful": projs.get("image", 0.0),
             "projection_gap": projs.get("text", 0.0) - projs.get("image", 0.0),
             "backend": handle.backend,
             "model": handle.name,
-            "behavioral_gap": gap["refusal_gap_text_minus_image"],
+            "architecture": handle.architecture,
+            "architectural_claim_answered": handle.architectural_claim_answered,
+            "behavioral_gap": gap.get("refusal_gap_text_minus_image"),
+            "gap_status": gap.get("status"),
         },
     )
     return result_dict(
@@ -99,6 +120,7 @@ def run_direction(
         direction_path=str(artifacts / "refusal_direction.pt"),
         backend=handle.backend,
         layer=layer,
-        projection_gap=projs.get("text", 0.0) - projs.get("image", 0.0),
-        refusal_gap_text_minus_image=gap["refusal_gap_text_minus_image"],
+        status=status,
+        projection_gap=projs.get("text", 0.0) - projs.get("image", 0.0) if projs else None,
+        refusal_gap_text_minus_image=gap.get("refusal_gap_text_minus_image"),
     )

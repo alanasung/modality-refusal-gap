@@ -1,6 +1,8 @@
 # @package _global_
 #
-# Refusal Without a Projector — pilot on Apple MPS with SyntheticVLM fallback.
+# Refusal Without a Projector — pilot commits to a unified encoder-free subject.
+# Modular SmolVLM is smoke/baseline only. SyntheticVLM is a last-resort fallback
+# that marks architectural_claim_answered=false.
 
 defaults:
   - base_experiment
@@ -14,26 +16,31 @@ experiment:
   name: pilot
   task_id: E02
   description: >
-    Text-to-image refusal gap, refusal direction, logit lens, aligned
-    cross-modal patching, and steering cost. Uses SyntheticVLM when weights
-    are unavailable (pixel-accepting stub; backend=synthetic).
-  stages: [render, matched, ocr_check, direction, layers, vlsbench, utility]
-  tags: [pilot, local, vlm, multimodal]
+    Text-to-image refusal gap on a unified encoder-free VLM
+    (OpenGVLab/Mono-InternVL-2B), with modular contrast reserved for a
+    separate arm. If the unified subject cannot load, the run records
+    architectural_claim_answered=false rather than substituting modular.
+  stages: [render, matched, ocr_check, direction, layers, vlsbench, contrast, hydra, utility]
+  tags: [pilot, local, vlm, multimodal, unified]
 
 model:
-  name: HuggingFaceTB/SmolVLM-500M-Instruct
+  name: OpenGVLab/Mono-InternVL-2B
   dtype: FLOAT16
   device: AUTO
   batch_size: 1
   max_new_tokens: 64
   temperature: 0.0
   trust_remote_code: true
+  revision: main
 
 data:
   n_items: 16
 
-force_synthetic_vlm: true
-vlm_name: HuggingFaceTB/SmolVLM-500M-Instruct
-architecture: modular
+force_synthetic_vlm: false
+vlm_name: OpenGVLab/Mono-InternVL-2B
+vlm_role: subject
+architecture: unified
+allow_modular_as_subject: false
+modular_contrast: Qwen/Qwen2-VL-2B-Instruct
 quantization: none
 steer_alpha: 1.0

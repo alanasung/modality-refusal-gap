@@ -1,9 +1,6 @@
 # @package _global_
 #
-# The scaled-up run. This preset is a specification, not an invitation: at this
-# item count and batch size the collect stage is GPU-bound and is expected to
-# need rented compute. It is checked in so the scaled run is reviewable before
-# anyone pays for it.
+# Scaled unified subject (Fuyu-8B) + matched modular contrast. GPU-bound.
 
 defaults:
   - base_experiment
@@ -17,13 +14,28 @@ defaults:
 experiment:
   name: full
   task_id: E03
-  description: Scaled run at full item count. Requires a real GPU; not a local target.
-  stages: [build_dataset, collect, fit, evaluate, ablate, report]
-  tags: [full, gpu-required]
+  description: >
+    Full-profile unified subject adept/fuyu-8b with modular contrast
+    Qwen2-VL-2B on identical items. Requires a real GPU.
+  stages: [render, matched, ocr_check, direction, layers, vlsbench, contrast, hydra, utility]
+  tags: [full, gpu-required, unified]
 
 model:
-  batch_size: 32
-  dtype: BFLOAT16
+  name: adept/fuyu-8b
+  batch_size: 2
+  dtype: FLOAT16
+  device: AUTO
+  trust_remote_code: true
+  max_new_tokens: 64
+  temperature: 0.0
+
+force_synthetic_vlm: false
+vlm_name: adept/fuyu-8b
+vlm_role: subject
+architecture: unified
+allow_modular_as_subject: false
+modular_contrast: Qwen/Qwen2-VL-2B-Instruct
+quantization: none
 
 cache:
   namespace: full
