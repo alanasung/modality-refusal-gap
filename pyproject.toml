@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "vlmrefusal"
 version = "0.1.0"
-description = "If there is no vision projector to blame for the text-to-image safety gap, find out what is actually carrying it."
+description = "Mechanistic localization of multimodal refusal failures in encoder-free VLMs."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 license = { text = "MIT" }
-authors = [{ name = "Alessandro Suglia, Rohit Saxena, Francesco Pinto" }]
+authors = [{ name = "Alana Sung" }]
 dependencies = [
   "torch==2.6.0",
   "transformers==4.48.0",

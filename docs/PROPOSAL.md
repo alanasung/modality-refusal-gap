@@ -1,9 +1,7 @@
-# Proposal: Refusal Without a Projector
+# Refusal Circuits in Unified Vision-Language Models
 
 **Target project.** Locating the Refusal Circuit in Unified, Encoder-Free Vision-Language Models
-**Mentor.** Alessandro Suglia; Rohit Saxena; Francesco Pinto (University of Edinburgh; University of Edinburgh; Google DeepMind)
 **Research areas.** Mechanistic interpretability; AI security; Behavioral evaluation of LLMs
-**Related posting.** https://sparai.org/projects/f26/recTF6JBqSCgR6sNf
 
 ## Summary
 
@@ -54,7 +52,7 @@ reportable rather than a dead end.
 
 An earlier draft named Gemma-3 and Janus-Pro as unified candidates. Both carry a
 SigLIP vision encoder, so neither is encoder-free and neither can answer the
-mentor's question. They are replaced with genuinely monolithic / encoder-free
+motivating question. They are replaced with genuinely monolithic / encoder-free
 models:
 
 | role | choice |
@@ -74,7 +72,6 @@ SyntheticVLM / SmolVLM and is explicitly non-reportable.
 
 ## Relationship to the posting
 
-This proposal was checked against the mentor's verbatim posting by an
-independent model before implementation began. That check, the drift it found,
+This proposal was independent model before implementation began. That check, the drift it found,
 and the revisions made in response are recorded in
 [docs/ALIGNMENT.md](ALIGNMENT.md).

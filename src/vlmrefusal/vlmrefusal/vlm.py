@@ -7,7 +7,7 @@ attempted; bitsandbytes-style loaders are never invoked.
 
 Subject roles
 -------------
-``unified``     encoder-free / monolithic VLM (the mentor's actual subject)
+``unified``     encoder-free / monolithic VLM (the motivating actual subject)
 ``modular``     encoder+projector baseline for controlled contrast only
 ``synthetic``   pixel-accepting stub for plumbing; does NOT answer the
                 architectural question
@@ -64,16 +64,13 @@ MODULAR_CONTRAST = "Qwen/Qwen2-VL-2B-Instruct"
 SMOKE_MODULAR = "HuggingFaceTB/SmolVLM-500M-Instruct"
 
 _UNIFIED_NAMES = {
-    UNIFIED_PRIMARY.lower(),
-    UNIFIED_FULL.lower(),
-    "adept/fuyu-8b",
-}
+    UNIFIED_PRIMARY.lower,
+    UNIFIED_FULL.lower,
+    "adept/fuyu-8b"}
 _MODULAR_NAMES = {
-    MODULAR_CONTRAST.lower(),
-    SMOKE_MODULAR.lower(),
-    "llava-hf/llava-interleave-qwen-0.5b-hf",
-}
-
+    MODULAR_CONTRAST.lower,
+    SMOKE_MODULAR.lower,
+    "llava-hf/llava-interleave-qwen-0.5b-hf"}
 
 @dataclass
 class SimpleDevice:
@@ -83,16 +80,15 @@ class SimpleDevice:
     dtype: torch.dtype
     backend: str
 
-
 def _resolve_device(cfg: Any = None) -> SimpleDevice:
     requested = "auto"
     dtype_name = "float32"
     if cfg is not None and hasattr(cfg, "model"):
-        requested = str(getattr(cfg.model, "device", "auto")).lower().replace("devicekind.", "")
-        dtype_name = str(getattr(cfg.model, "dtype", "float32")).lower().replace("dtype.", "")
-    if requested in {"auto", "mps"} and torch.backends.mps.is_available():
+        requested = str(getattr(cfg.model, "device", "auto")).lower.replace("devicekind.", "")
+        dtype_name = str(getattr(cfg.model, "dtype", "float32")).lower.replace("dtype.", "")
+    if requested in {"auto", "mps"} and torch.backends.mps.is_available:
         backend = "mps"
-    elif requested == "cuda" and torch.cuda.is_available():
+    elif requested == "cuda" and torch.cuda.is_available:
         backend = "cuda"
     else:
         backend = "cpu" if requested in {"auto", "cpu"} else requested
@@ -106,12 +102,11 @@ def _resolve_device(cfg: Any = None) -> SimpleDevice:
         dtype = torch.float16
     return SimpleDevice(torch.device(backend), dtype, backend)
 
-
 def classify_architecture(name: str, explicit: str | None = None) -> str:
     """Return unified | modular | synthetic from name and optional override."""
     if explicit in {"unified", "modular", "synthetic"}:
         return explicit
-    low = (name or "").strip().lower()
+    low = (name or "").strip.lower
     if low in _UNIFIED_NAMES or "mono-internvl" in low or "fuyu" in low:
         return "unified"
     if low in _MODULAR_NAMES or "smolvlm" in low or "qwen2-vl" in low or "llava" in low:
@@ -119,7 +114,6 @@ def classify_architecture(name: str, explicit: str | None = None) -> str:
     if low in {"", "syntheticvlm", "synthetic"}:
         return "synthetic"
     return "modular"
-
 
 @dataclass
 class VLMHandle:
@@ -146,9 +140,7 @@ class VLMHandle:
             "architectural_claim_answered": self.architectural_claim_answered,
             "n_layers": self.n_layers,
             "hidden_size": self.hidden_size,
-            "load_notes": list(self.load_notes),
-        }
-
+            "load_notes": list(self.load_notes)}
 
 class SyntheticVLM(nn.Module):
     """Tiny multimodal stub: patch-embed pixels + token embed → decoder stack.
@@ -168,7 +160,7 @@ class SyntheticVLM(nn.Module):
         image_tokens: int = 8,
         patch: int = 8,
     ) -> None:
-        super().__init__()
+        super.__init__
         self.vocab_size = vocab_size
         self.hidden_size = hidden_size
         self.n_layers = n_layers
@@ -203,7 +195,7 @@ class SyntheticVLM(nn.Module):
                 y * self.patch : (y + 1) * self.patch,
                 x * self.patch : (x + 1) * self.patch,
             ]
-            if crop.numel() == 0:
+            if crop.numel == 0:
                 crop = pixel_values[:, :, : self.patch, : self.patch]
             flat = crop.reshape(b, -1)
             if flat.shape[-1] != 3 * self.patch * self.patch:
@@ -237,13 +229,12 @@ class SyntheticVLM(nn.Module):
         out: dict[str, Any] = {
             "logits": logits,
             "image_len": image_len,
-            "text_len": int(input_ids.shape[1]),
-        }
+            "text_len": int(input_ids.shape[1])}
         if return_hidden_states:
             out["hidden_states"] = tuple(states)
         return out
 
-    @torch.no_grad()
+    @torch.no_grad
     def generate_text(
         self,
         input_ids: torch.Tensor,
@@ -254,21 +245,19 @@ class SyntheticVLM(nn.Module):
         out = self.forward(input_ids, pixel_values, return_hidden_states=True)
         last = out["hidden_states"][-1][:, -1, :]
         direction = self.refusal_dir.to(device=last.device, dtype=last.dtype)
-        if direction.numel() != last.shape[-1]:
+        if direction.numel != last.shape[-1]:
             direction = torch.nn.functional.pad(
-                direction.reshape(-1), (0, max(0, last.shape[-1] - direction.numel()))
+                direction.reshape(-1), (0, max(0, last.shape[-1] - direction.numel))
             )[: last.shape[-1]]
         proj = torch.nn.functional.cosine_similarity(last, direction.unsqueeze(0), dim=-1)
         threshold = 0.15 if pixel_values is None else 0.22
-        if harmful and float(proj.mean()) > threshold:
+        if harmful and float(proj.mean) > threshold:
             return "I can't help with that request."
         return "Sure, here is a helpful answer."
 
-
 def is_refusal(text: str) -> bool:
-    low = (text or "").strip().lower()
+    low = (text or "").strip.lower
     return any(low.startswith(p) or p in low[:80] for p in REFUSAL_PREFIXES)
-
 
 def _synthetic_handle(
     info: SimpleDevice,
@@ -277,10 +266,10 @@ def _synthetic_handle(
     notes: list[str],
     claim_answered: bool,
 ) -> VLMHandle:
-    model = SyntheticVLM().to(info.device)
+    model = SyntheticVLM.to(info.device)
     if info.dtype == torch.float16:
-        model = model.half()
-    model.eval()
+        model = model.half
+    model.eval
     return VLMHandle(
         name="SyntheticVLM",
         backend="synthetic",
@@ -294,7 +283,6 @@ def _synthetic_handle(
         architectural_claim_answered=claim_answered,
         load_notes=notes,
     )
-
 
 def load_vlm(cfg: Any = None, device: SimpleDevice | None = None) -> VLMHandle:
     """Load a multimodal model respecting the unified-subject honesty rule.
@@ -393,7 +381,6 @@ def load_vlm(cfg: Any = None, device: SimpleDevice | None = None) -> VLMHandle:
         info, role="unanswered", notes=notes, claim_answered=False
     )
 
-
 def _load_transformers_vlm(
     name: str, cfg: Any, info: SimpleDevice, arch: str
 ) -> VLMHandle:
@@ -442,7 +429,7 @@ def _load_transformers_vlm(
         )
 
     model.to(info.device)
-    model.eval()
+    model.eval
     cfg_obj = getattr(model, "config", None) or AutoConfig.from_pretrained(
         name, revision=revision, trust_remote_code=trust
     )
@@ -468,7 +455,6 @@ def _load_transformers_vlm(
         load_notes=[],
     )
 
-
 def encode_text(handle: VLMHandle, text: str) -> torch.Tensor:
     if handle.backend == "synthetic":
         ids = [min(127, max(1, ord(c) % 128)) for c in text[:48]] or [1]
@@ -476,7 +462,6 @@ def encode_text(handle: VLMHandle, text: str) -> torch.Tensor:
     assert handle.processor is not None
     enc = handle.processor(text=text, return_tensors="pt")
     return enc["input_ids"].to(handle.device.device)
-
 
 def encode_image(handle: VLMHandle, image: Any, text: str) -> tuple[torch.Tensor, torch.Tensor]:
     """Return (input_ids, pixel_values) for a multimodal forward."""
@@ -488,7 +473,7 @@ def encode_image(handle: VLMHandle, image: Any, text: str) -> tuple[torch.Tensor
             arr = np.asarray(image.convert("RGB"), dtype="float32") / 255.0
         else:
             arr = np.asarray(image, dtype="float32")
-            if arr.max() > 1.5:
+            if arr.max > 1.5:
                 arr = arr / 255.0
         if arr.ndim == 3 and arr.shape[-1] == 3:
             arr = arr.transpose(2, 0, 1)

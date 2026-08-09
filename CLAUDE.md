@@ -4,8 +4,7 @@ Context for coding agents working in this repository.
 
 ## What this is
 
-A pilot research implementation of "Refusal Without a Projector" for the research agenda "Locating the Refusal Circuit in Unified, Encoder-Free Vision-Language Models" (mentor: Alessandro Suglia; Rohit Saxena; Francesco Pinto,
-University of Edinburgh; University of Edinburgh; Google DeepMind).
+Research implementation of "Refusal Circuits in Unified Vision-Language Models".
 
 ## Hard constraints
 
@@ -21,7 +20,7 @@ University of Edinburgh; University of Edinburgh; Google DeepMind).
 
 Implement the stages in `src/vlmrefusal/stages.py`. The signatures,
 dependency edges, and docstring contracts are fixed; they encode an experiment
-design that was checked against the mentor's posting before implementation
+design that was checked against the motivating posting before implementation
 started. Do not renegotiate them. If a contract is genuinely wrong, change it in
 `docs/EXPERIMENT_PLAN.md` first and explain why.
 

@@ -1,7 +1,6 @@
 # Related work
 
-This note situates **Refusal Without a Projector** against the mentor-linked literature for
-[Locating the Refusal Circuit in Unified, Encoder-Free Vision-Language Models](https://sparai.org/projects/f26/recTF6JBqSCgR6sNf).
+This note situates **Refusal Circuits in Unified Vision-Language Models** against related literature.
 
 ## Positioning
 
@@ -25,7 +24,7 @@ is written.
 
 ### Slot A — Primary motivating paper
 
-Summary of the mentor's main citation and the exact claim this repo tests.
+Summary of the main related citation and the exact claim this repo tests.
 
 ### Slot B — Closest prior codebase
 
@@ -44,11 +43,6 @@ Shortcut learning, eval awareness, circular labels, underpowered nulls.
 
 Where this design intentionally diverges from common practice, with the
 falsification condition.
-
-## Mentors and affiliations
-
-- Mentor(s): Alessandro Suglia, Rohit Saxena, Francesco Pinto
-- Affiliation(s): University of Edinburgh, University of Edinburgh, Google DeepMind
 
 ## Bibliography placeholders
 

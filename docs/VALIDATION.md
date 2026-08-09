@@ -32,7 +32,7 @@ Codex SERIOUS_PROBLEMS vs Grok PASS_WITH_NOTES. **Split judgment:**
 - **Architectural / alignment engineering:** PASS (Grok + our tests).
 - **Measured scientific validity on real weights:** still open (Codex) until Mono-InternVL/Fuyu weights are cached, VLSBench corpus is local, and utility subsets are real.
 
-Residual blockers for a mentor-grade measured pilot (not engineering scaffolding):
+Residual blockers for a prior work-grade measured pilot (not engineering scaffolding):
 1. Download and pin Mono-InternVL (or Fuyu) immutable revision; set `require_measured_vlm: true` for reportable runs.
 2. Provide `VLSBENCH_ROOT` with a versioned leakless manifest.
 3. Fit refusal direction from refusal/compliance contrasts, not only harmful/benign.
@@ -40,7 +40,7 @@ Residual blockers for a mentor-grade measured pilot (not engineering scaffolding
 
 Operating judgment: **ship P1 architectural upgrade**; treat Codex science-depth items as the measured-pilot backlog before claiming results.
 
-## P5 rigor pass (measured mentor-critical paths)
+## P5 rigor pass (measured prior work-critical paths)
 
 - Live / measured paths preferred; synthetic remains smoke-only with honesty stamps.
 - Claim gating tightened where proxies previously looked like evidence.

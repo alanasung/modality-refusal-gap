@@ -11,7 +11,6 @@ from .common import read_json, result_dict, write_json
 from .intervention import benign_overrefusal_cost, intervention_effect, utility_proxy_score
 from .vlm import load_vlm
 
-
 def run_utility(
     cfg: Any,
     device: Any,
@@ -27,20 +26,18 @@ def run_utility(
     effect = intervention_effect(handle, items, direction, alpha=alpha)
     overrefusal = benign_overrefusal_cost(handle, items, direction, alpha=alpha)
     util = utility_proxy_score(handle, n=min(8, cfg.data.n_items))
-    # Local MMLU / MMBench proxies so the mentor's dual utility axes are present
+    # Local MMLU / MMBench proxies so the motivating dual utility axes are present
     # in the pilot schema; full profiles swap these for real eval harness scores.
     mmlu_proxy = {
         "score": util,
         "n": min(8, int(getattr(cfg.data, "n_items", 8))),
         "status": "proxy",
-        "note": "Pilot proxy; full profile runs real MMLU subsets.",
-    }
+        "note": "Pilot proxy; full profile runs real MMLU subsets."}
     mmbench_proxy = {
         "score": util,
         "n": min(8, int(getattr(cfg.data, "n_items", 8))),
         "status": "proxy",
-        "note": "Pilot proxy; full profile runs real MMBench subsets.",
-    }
+        "note": "Pilot proxy; full profile runs real MMBench subsets."}
 
     path = write_json(
         artifacts / "utility.json",
@@ -53,12 +50,11 @@ def run_utility(
             "architectural_claim_answered": handle.architectural_claim_answered,
             "architecture": handle.architecture,
             "note": (
-                "Pilot fills mmbench/mmlu with local proxies so both mentor-requested "
+                "Pilot fills mmbench/mmlu with local proxies so both prior work-requested "
                 "utility axes are present; full profile replaces them with real scores."
             ),
             "dtype_path": str(handle.device.dtype),
-            "quantization": "none (float16/float32 Apple path only)",
-        },
+            "quantization": "none (float16/float32 Apple path only)"},
     )
     return result_dict(
         task="utility",

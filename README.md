@@ -1,18 +1,15 @@
 <p align="center">
-  <h1 align="center">Refusal Without a Projector</h1>
-  <p align="center"><strong>If there is no vision projector to blame for the text-to-image safety gap, find out what is actually carrying it.</strong></p>
+  <h1 align="center">Refusal Circuits in Unified Vision-Language Models</h1>
+  <p align="center"><strong>Locate the text-to-vision safety gap when there is no projector left to blame — and try to patch it.</strong></p>
   </p>
 
 ---
 
 ## Overview
 
-This repository implements the pilot and full experimental profiles for
-**Refusal Without a Projector**. Config, caching, hooks, metrics, ablations, reporting, and CI are built for reproducible local pilots on small open-weight models.
+This repository implements experimental profiles for **Refusal Circuits in Unified Vision-Language Models**. Config, caching, hooks, metrics, ablations, reporting, and CI are built for reproducible local pilots on small open-weight models.
 
 Hypothesis (one line): In a unified, encoder-free VLM the text-derived refusal direction still exists and is still linear, but image-delivered harmful intent lands with systematically lower projection onto it. The deficit accumulates across early decoder layers rather than appearing at one interface, which is the signature that distinguishes a distributed failure from a modular one.
-
-Mentors: Alessandro Suglia, Rohit Saxena, Francesco Pinto (University of Edinburgh, University of Edinburgh, Google DeepMind).
 
 ## Motivation
 
@@ -89,13 +86,12 @@ registry and must pass the harness-validation script before any measured claim.
 ## Citation
 
 ```bibtex
-@misc{vlmrefusal_pilot,
-  title        = {Refusal Without a Projector},
-  author       = {Alessandro Suglia, Rohit Saxena, Francesco Pinto},
+@misc{unified_vlm_refusal_pilot,
+  title        = {Refusal Circuits in Unified Vision-Language Models},
+  author       = {Alana Sung},
   year         = {2026},
-  howpublished = {Research pilot},
-  note         = {If there is no vision projector to blame for the text-to-image safety gap, find out what is actually carrying it.},
-  }
+  howpublished = {Technical report},
+}
 ```
 
 ## License
