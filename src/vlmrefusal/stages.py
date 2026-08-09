@@ -7,7 +7,6 @@ from typing import Any, Callable
 
 from omegaconf import DictConfig
 
-from vlmrefusal.utils.io import ensure_dir
 from vlmrefusal.vlmrefusal.common import cfg_n_items, cfg_seed, ensure_artifacts
 from vlmrefusal.vlmrefusal.direction import run_direction
 from vlmrefusal.vlmrefusal.layers import run_layers
@@ -47,10 +46,7 @@ def ocr_check(cfg: DictConfig, run_dir: Path) -> dict[str, Any]:
 def direction(cfg: DictConfig, run_dir: Path) -> dict[str, Any]:
     artifacts = ensure_artifacts(run_dir)
     return run_direction(
-        cfg,
-        None,
-        artifacts,
-        {"artifact": str(artifacts / "ocr_check.json")},
+        cfg, None, artifacts, {"artifact": str(artifacts / "ocr_check.json")}
     )
 
 
@@ -69,7 +65,9 @@ def layers(cfg: DictConfig, run_dir: Path) -> dict[str, Any]:
 
 
 def vlsbench(cfg: DictConfig, run_dir: Path) -> dict[str, Any]:
-    return run_vlsbench(cfg, None, ensure_artifacts(run_dir), n_items=min(8, cfg_n_items(cfg)))
+    return run_vlsbench(
+        cfg, None, ensure_artifacts(run_dir), n_items=min(8, cfg_n_items(cfg))
+    )
 
 
 def utility(cfg: DictConfig, run_dir: Path) -> dict[str, Any]:
@@ -95,14 +93,3 @@ STAGES: dict[str, Callable[[DictConfig, Path], dict[str, Any]]] = {
     "vlsbench": vlsbench,
     "utility": utility,
 }
-
-# Standard pilot/smoke aliases.
-STAGES = {
-    **STAGES,
-    "build_dataset": render,
-    "collect": matched,
-    "fit": direction,
-    "evaluate": vlsbench,
-    "report": utility,
-}
-

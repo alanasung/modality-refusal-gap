@@ -18,10 +18,12 @@ def test_load_synth():
 def test_refusal():
     assert is_refusal("I can't help with that request.")
 def test_no_4bit():
-    import inspect
+    import inspect, re
     from vlmrefusal.vlmrefusal import vlm as m
     src = inspect.getsource(m.load_vlm)+inspect.getsource(m._load_transformers_vlm)
-    assert "load_in_4bit" not in src
+    code = re.sub(r"#.*", "", src)
+    assert "load_in_4bit" not in code
+    assert "BitsAndBytes" not in code
 def test_encode(tmp_path):
     from PIL import Image
     cfg = SimpleNamespace(force_synthetic_vlm=True, model=SimpleNamespace(name="x", device="cpu", dtype="float32"))
