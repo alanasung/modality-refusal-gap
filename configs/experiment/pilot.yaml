@@ -1,0 +1,39 @@
+# @package _global_
+#
+# Refusal Without a Projector — pilot on Apple MPS with SyntheticVLM fallback.
+
+defaults:
+  - base_experiment
+  - override /model: qwen0.5b
+  - override /data: pilot
+  - override /eval: fast
+  - override /run: pilot
+  - _self_
+
+experiment:
+  name: pilot
+  task_id: E02
+  description: >
+    Text-to-image refusal gap, refusal direction, logit lens, aligned
+    cross-modal patching, and steering cost. Uses SyntheticVLM when weights
+    are unavailable (pixel-accepting stub; backend=synthetic).
+  stages: [render, matched, ocr_check, direction, layers, vlsbench, utility]
+  tags: [pilot, local, vlm, multimodal]
+
+model:
+  name: HuggingFaceTB/SmolVLM-500M-Instruct
+  dtype: FLOAT16
+  device: AUTO
+  batch_size: 1
+  max_new_tokens: 64
+  temperature: 0.0
+  trust_remote_code: true
+
+data:
+  n_items: 16
+
+force_synthetic_vlm: true
+vlm_name: HuggingFaceTB/SmolVLM-500M-Instruct
+architecture: modular
+quantization: none
+steer_alpha: 1.0
