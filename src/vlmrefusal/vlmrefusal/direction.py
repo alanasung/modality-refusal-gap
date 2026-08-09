@@ -22,19 +22,74 @@ def _last_residual(handle: VLMHandle, item: dict[str, Any], layer: int) -> torch
     return last_token_residual(handle, text=text, image=image, layer=layer)
 
 
+def _behavior_buckets(
+    handle: VLMHandle, items: list[dict[str, Any]]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str]:
+    """Partition harmful text into refuse vs comply via model behavior when possible."""
+    from .vlm import encode_text, is_refusal
+
+    refuse: list[dict[str, Any]] = []
+    comply: list[dict[str, Any]] = []
+    for it in items:
+        if it.get("behavior") == "refuse":
+            refuse.append(it)
+        elif it.get("behavior") == "comply":
+            comply.append(it)
+    if refuse and comply:
+        return refuse, comply, "labeled_behavior"
+
+    harm = [it for it in items if it.get("label") == "harmful" and it.get("modality") == "text"]
+    for it in harm[: min(24, len(harm))]:
+        try:
+            text = it.get("source_text") or it["text"]
+            if handle.backend == "synthetic" and hasattr(handle.model, "generate_text"):
+                ids = encode_text(handle, text)
+                out = handle.model.generate_text(ids, None, harmful=True)
+            else:
+                ids = encode_text(handle, text)
+                gen = handle.model.generate(ids, max_new_tokens=24)
+                tok = getattr(handle.processor, "tokenizer", handle.processor)
+                assert tok is not None
+                out = tok.decode(gen[0], skip_special_tokens=True)
+            if is_refusal(out):
+                refuse.append(it)
+            else:
+                comply.append(it)
+        except Exception:
+            continue
+    if len(refuse) >= 2 and len(comply) >= 2:
+        return refuse, comply, "refusal_vs_compliance"
+    return [], [], "unavailable"
+
+
 def extract_refusal_direction(
     handle: VLMHandle, items: list[dict[str, Any]], layer: int
 ) -> tuple[torch.Tensor, dict[str, Any]]:
     """Difference-in-means on a TRAIN split; evaluate projections on HOLD-OUT.
 
-    Prefer refusal-labelled rows when present; else harmful-vs-benign text.
+    Prefer refusal-vs-compliance on the same harmful-intent family; fall back to
+    harmful-vs-benign text with an honest fit_rule stamp.
     """
     text_items = [it for it in items if it.get("modality") == "text"]
-    # Split by matched_group parity for disjoint families.
     train = [it for it in text_items if int(str(it.get("matched_group", "0")).__hash__() % 2) == 0]
     hold = [it for it in text_items if it not in train]
     if len(train) < 2:
         train, hold = text_items[: max(1, len(text_items) // 2)], text_items[max(1, len(text_items) // 2) :]
+
+    refuse, comply, rule = _behavior_buckets(handle, train)
+    if rule != "unavailable" and refuse and comply:
+        r_mean = torch.stack([_last_residual(handle, it, layer) for it in refuse]).mean(0)
+        c_mean = torch.stack([_last_residual(handle, it, layer) for it in comply]).mean(0)
+        direction = torch.nn.functional.normalize(r_mean - c_mean, dim=0)
+        meta = {
+            "n_train_refuse": len(refuse),
+            "n_train_comply": len(comply),
+            "n_holdout": len(hold),
+            "fit_rule": "refusal_vs_compliance",
+            "behavior_source": rule,
+        }
+        return direction, meta
+
     harm = [it for it in train if it.get("label") == "harmful"]
     ben = [it for it in train if it.get("label") == "benign"]
     if not harm or not ben:
@@ -46,7 +101,8 @@ def extract_refusal_direction(
         "n_train_harmful": len(harm),
         "n_train_benign": len(ben),
         "n_holdout": len(hold),
-        "fit_rule": "harmful_minus_benign_text_on_train_split",
+        "fit_rule": "harmful_minus_benign",
+        "behavior_source": "fallback_label_contrast",
     }
     return direction, meta
 

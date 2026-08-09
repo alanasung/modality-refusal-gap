@@ -39,3 +39,10 @@ Residual blockers for a mentor-grade measured pilot (not engineering scaffolding
 4. Wire real MMLU/MMBench subsets for the full profile.
 
 Operating judgment: **ship P1 architectural upgrade**; treat Codex science-depth items as the measured-pilot backlog before claiming results.
+
+## P5 rigor pass (measured mentor-critical paths)
+
+- Live / measured paths preferred; synthetic remains smoke-only with honesty stamps.
+- Claim gating tightened where proxies previously looked like evidence.
+- Domain tests green without Hub downloads.
+

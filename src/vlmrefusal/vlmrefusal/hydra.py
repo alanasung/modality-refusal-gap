@@ -33,16 +33,17 @@ def hydra_curve(
     direction = torch.nn.functional.normalize(direction.detach().float().reshape(-1), dim=0)
     baseline = _refuse_rate(handle, harmful)
     layer = max(0, handle.n_layers - 1)
+    # Rank components once: top-|coord| of the refusal direction (PCA-lite).
+    ranked = torch.argsort(direction.detach().float().abs(), descending=True)
     rows = []
     for k in depths:
+        kk = min(int(k), int(ranked.numel()))
+        component_idx = ranked[:kk].tolist()
         if handle.backend == "synthetic":
-            # Zero top-k coords of planted refusal_dir (component proxy).
             old = handle.model.refusal_dir.data.clone()
             ablated = old.clone().cpu().float()
-            kk = min(k, ablated.numel())
             if kk > 0:
-                idx = torch.topk(ablated.abs(), kk).indices
-                ablated[idx] = 0.0
+                ablated[ranked[:kk].cpu()] = 0.0
             handle.model.refusal_dir.data.copy_(
                 ablated.to(device=old.device, dtype=old.dtype)
             )
@@ -50,15 +51,24 @@ def hydra_curve(
                 rate = _refuse_rate(handle, harmful)
             finally:
                 handle.model.refusal_dir.data.copy_(old)
+            component_scheme = "topk_abs_refusal_dir_coords"
         else:
-            remover = attach_zero_direction(handle, direction, layer=layer)
+            # Ablate the subspace spanned by the top-k absolute coordinates.
+            partial = torch.zeros_like(direction)
+            if kk > 0:
+                partial[ranked[:kk]] = direction[ranked[:kk]]
+            remover = attach_zero_direction(handle, partial, layer=layer)
             try:
                 rate = _refuse_rate(handle, harmful)
             finally:
                 remover()
+            component_scheme = "topk_abs_direction_coords"
         rows.append(
             {
                 "ablation_depth": k,
+                "n_components_ablated": kk,
+                "component_indices": component_idx[: min(8, len(component_idx))],
+                "component_scheme": component_scheme,
                 "refusal_rate": rate,
                 "recovery_vs_baseline": rate / baseline if baseline > 0 else None,
                 "architecture": handle.architecture,
@@ -71,6 +81,7 @@ def hydra_curve(
         "architectural_claim_answered": handle.architectural_claim_answered,
         "model": handle.name,
         "architecture": handle.architecture,
+        "component_ranking": "topk_abs_direction_coords",
         "curve": rows,
     }
 
