@@ -1,12 +1,15 @@
-# ALIGNMENT.md — vlm-refusal-circuit
+# ALIGNMENT — vlm-refusal-circuit
 
-## Codex GPT-5 Sol (`codex exec -m gpt-5.6-sol -s read-only`)
-- **Verdict:** MINOR_DRIFT
-- **Summary:** The proposal is tightly aligned with the core refusal-localization and intervention project, but it leaves out the explicit hydra-effect investigation and does not fully operationalize the requested comparison with modular architectures.
+## Codex GPT-5 Sol
+- Verdict: MINOR_DRIFT
+- Summary: The proposal is tightly aligned with the core refusal-localization and intervention project, but it leaves out the explicit hydra-effect investigation and does not fully operationalize the requested comparison with modular architectures.
 
-## Grok (`cursor-grok-4.5-high-fast`)
-- **Verdict:** ALIGNED_WITH_NOTES (see `orchestration/out/grok/align/vlm-refusal-circuit.md` when present)
-- Domain modules and DESIGN.md absorb MINOR_DRIFT items from the idea gate.
+## Grok
+- Verdict: MATERIAL_DRIFT
+- Summary: Right mechanistic questions for unified VLMs, but the model plan fails to commit to a runnable encoder-free unified subject — which is the whole posting.
+- Detail: see `orchestration/out/grok/align/vlm-refusal-circuit.md` and `vlm-refusal-circuit.json`.
 
 ## Reconciliation
-Codex and Grok agree the idea tracks the mentor posting. Remaining drift is scoped as documented limitations (efficiency honesty, image path, attack-ladder specificity), not idea substitution. **Proceed.**
+Codex MINOR_DRIFT vs Grok MATERIAL_DRIFT on missing unified encoder-free subject + hydra RQ. Engineering pilot is runnable via SyntheticVLM/SmolVLM; research claim needs an explicit unified-model plan or scoped restatement. Proceed only with that caveat.
+
+Operating judgment: proceed with unified-VLM caveat.
