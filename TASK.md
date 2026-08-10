@@ -1,4 +1,4 @@
-# TASK.md — Why Visual Jailbreaks Persist After the Projector Disappears
+# Same Harm, Different Modality, Different Refusal
 
 ID convention: `I##` infrastructure, `D##` data, `M##` modelling / hooks,
 `E##` experiments, `A##` ablations, `S##` sweeps, `R##` reporting.

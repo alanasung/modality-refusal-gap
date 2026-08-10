@@ -1,4 +1,4 @@
-# Technical appendix
+# Same Harm, Different Modality, Different Refusal
 
 ## A1. Technical note 1
 

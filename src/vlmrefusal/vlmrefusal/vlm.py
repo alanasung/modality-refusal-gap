@@ -7,7 +7,7 @@ attempted; bitsandbytes-style loaders are never invoked.
 
 Subject roles
 -------------
-``unified``     encoder-free / monolithic VLM (the mentor's actual subject)
+``unified``     encoder-free / monolithic VLM (the primary unified subject)
 ``modular``     encoder+projector baseline for controlled contrast only
 ``synthetic``   pixel-accepting stub for plumbing; does NOT answer the
                 architectural question

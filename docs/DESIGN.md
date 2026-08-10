@@ -1,14 +1,14 @@
-# Design Document: Why Visual Jailbreaks Persist After the Projector Disappears
+# Same Harm, Different Modality, Different Refusal — design
 
 ## 1. Purpose
 
-This document is the method contract for **Why Visual Jailbreaks Persist After the Projector Disappears**. It specifies what is
+This document is the method contract for **Same Harm, Different Modality, Different Refusal**. It specifies what is
 measured, how measurement is instrumented, which artifacts are produced, and
 which claims are out of scope for the pilot profile.
 
 One-liner: If there is no vision projector to blame for the text-to-image safety gap, find out what is actually carrying it.
 
-Hypothesis: Removing the vision projector does not remove multimodal refusal gaps — the failure redistributes across early decoder computation and can be partially ablated or steered.
+Hypothesis: Matched harmful intent can elicit different refusal rates by modality even in compact VLMs; the gap is partially linear and partially ablatable in early decoder computation.
 
 ## 2. Scope
 

@@ -1,4 +1,4 @@
-# Experiment plan
+# Experiment plan — Same Harm, Different Modality, Different Refusal
 
 Stage-by-stage design. Each stage is registered in `src/vlmrefusal/stages.py`
 and appears in `python -m vlmrefusal stages`.

@@ -1,9 +1,9 @@
-# Repository guide
+# Same Harm, Different Modality, Different Refusal
 
 See [CLAUDE.md](CLAUDE.md) for the full build instructions; this file exists so
 that agents which look for `AGENTS.md` find the same context.
 
-Project: Why Visual Jailbreaks Persist After the Projector Disappears
+Project: Same Harm, Different Modality, Different Refusal
 Package: `src/vlmrefusal`
 Entry point: `python -m vlmrefusal --help`
 

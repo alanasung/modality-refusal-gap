@@ -1,6 +1,5 @@
-# Why Visual Jailbreaks Persist After the Projector Disappears
+# Same Harm, Different Modality, Different Refusal
 
-**Target project.** Why Visual Jailbreaks Persist After the Projector Disappears
 **Research areas.** Mechanistic interpretability; AI security; Behavioral evaluation of LLMs
 
 ## Summary
@@ -9,7 +8,7 @@ If there is no vision projector to blame for the text-to-image safety gap, find 
 
 ## Hypothesis
 
-In a unified, encoder-free VLM the text-derived refusal direction still exists and is still linear, but image-delivered harmful intent lands with systematically lower projection onto it. The deficit accumulates across early decoder layers rather than appearing at one interface, which is the signature that distinguishes a distributed failure from a modular one.
+Matched harmful intent can elicit different refusal rates by modality even in compact VLMs; the gap is partially linear and partially ablatable in early decoder computation.
 
 A hypothesis worth testing has to be able to lose. This one loses if the
 measurements below come back null, and the design is built so that a null is

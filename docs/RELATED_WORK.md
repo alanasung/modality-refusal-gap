@@ -1,12 +1,12 @@
 # Related work
 
-This note situates **Why Visual Jailbreaks Persist After the Projector Disappears** against related literature.
+This note situates **Same Harm, Different Modality, Different Refusal** against related literature.
 
 ## Positioning
 
 If there is no vision projector to blame for the text-to-image safety gap, find out what is actually carrying it.
 
-The design hypothesis is: In a unified, encoder-free VLM the text-derived refusal direction still exists and is still linear, but image-delivered harmful intent lands with systematically lower projection onto it. The deficit accumulates across early decoder layers rather than appearing at one interface, which is the signature that distinguishes a distributed failure from a modular one.
+The design hypothesis is: Matched harmful intent can elicit different refusal rates by modality even in compact VLMs; the gap is partially linear and partially ablatable in early decoder computation.
 
 ## Engagement rules
 

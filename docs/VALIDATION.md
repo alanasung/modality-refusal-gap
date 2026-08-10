@@ -75,24 +75,11 @@ Residual (frontier / licensed corpora, not empty stages): real Mono-InternVL wei
 
 Residual (unchanged): licensed VLSBench / Mono-InternVL weights for reportable measured contrast; powered gap floor still requires ≥24 harmful pairs per modality.
 
-## Codex problem-statement fit
+## Scientific validity notes (Codex)
 
-Model: `gpt-5.6-sol` · gates: `match` + `validate` · 2026-08-09
-Artifacts: `orchestration/out/match/vlm-refusal-circuit.md`, `orchestration/out/validate/vlm-refusal-circuit.md`
+Model: `gpt-5.6-sol`. Full artifacts live in the private orchestration tree.
 
-- **Match verdict:** `MATERIAL_DRIFT` · methods `mixed_proxy`
-- **Validate overall:** `SERIOUS_PROBLEMS` · fit `MATERIAL_DRIFT` · feasibility `RUNNABLE_IF_SHRUNK`
-- **Match summary:** The repository asks the right encoder-free refusal-circuit question and has strong experimental scaffolding, but its key causal patching, hydra, benchmark-utility, and real-model paths are not yet capable of delivering the mentor's promised mechanistic pilot.
-- **Validate summary:** A strong-looking and unusually honest scaffold, but its central mechanistic measurements are currently invalid and its advertised pilot is too large and incomplete to answer the mentor's research question.
+- **Framing:** Same Harm, Different Modality, Different Refusal — cross-modality refusal mismatch localization.
+- **Methods fidelity:** mixed measured / proxy paths; smoke stays synthetic.
+- **Open scientific gaps:** protocol confounds, proxy corpora, and claim gating remain; do not present pilots as settled empirical results.
 
-### Top drift / missing (match)
-- the default pilot permits synthetic fallback because require_measured_vlm is not enabled, so successful execution need not answer the architectural question
-- cross-modal patching edits a detached activation and scores a heuristic rather than performing a patched downstream forward pass
-- hydra components are coordinates of one direction, not independently localized circuit components, and architecture comparison omits recovery curves
-- utility fields named MMLU/MMBench contain local proxies in every profile; the documented full benchmark path is not implemented
-
-### Blocking (validate)
-- `src/vlmrefusal/vlmrefusal/direction.py`: Image activation runs use source_text, exposing the harmful instruction through the text channel and invalidating the cross-modal projection comparison.
-- `src/vlmrefusal/vlmrefusal/patching.py`: Patching modifies a detached tensor and never injects it into model computation; the real-model residual refusal score is also effectively cosine(vec, vec).
-- `src/vlmrefusal/vlmrefusal/vlsbench.py`: The checked-in fixture is always selected before VLSBENCH_ROOT, making the real corpus path unreachable.
-- `data/fixtures/leakless_mini/manifest.json`: Generic images such as an arrow are labeled as visual counterparts to specific harmful text intents, so the modality comparison is not content matched.

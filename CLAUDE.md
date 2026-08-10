@@ -1,10 +1,10 @@
-# Build instructions
+# Same Harm, Different Modality, Different Refusal
 
 Context for coding agents working in this repository.
 
 ## What this is
 
-Research implementation of "Why Visual Jailbreaks Persist After the Projector Disappears".
+Research implementation of "Same Harm, Different Modality, Different Refusal".
 
 ## Hard constraints
 

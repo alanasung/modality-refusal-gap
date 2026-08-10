@@ -1,15 +1,15 @@
 <p align="center">
-  <h1 align="center">Why Visual Jailbreaks Persist After the Projector Disappears</h1>
-  <p align="center"><strong>Trace text-versus-image refusal gaps inside encoder-free VLMs, rank redundant refusal components, and test lightweight patches.</strong></p>
+  <h1 align="center">Same Harm, Different Modality, Different Refusal</h1>
+  <p align="center"><strong>Localize text-versus-image refusal mismatches in compact vision-language models and test small interventions.</strong></p>
   </p>
 
 ---
 
 ## Overview
 
-This repository implements experimental profiles for **Why Visual Jailbreaks Persist After the Projector Disappears**. Config, caching, hooks, metrics, ablations, reporting, and CI are built for reproducible local pilots on small open-weight models.
+This repository implements experimental profiles for **Same Harm, Different Modality, Different Refusal**. Config, caching, hooks, metrics, ablations, reporting, and CI are built for reproducible local pilots on small open-weight models.
 
-Hypothesis (one line): Removing the vision projector does not remove multimodal refusal gaps — the failure redistributes across early decoder computation and can be partially ablated or steered.
+Hypothesis (one line): Matched harmful intent can elicit different refusal rates by modality even in compact VLMs; the gap is partially linear and partially ablatable in early decoder computation.
 
 ## Motivation
 
@@ -76,8 +76,7 @@ private data. Synthetic harness-validation outputs are labelled
 
 ## Status
 
-Shared spine is in place. Domain-specific stages land behind the experiment
-registry and must pass the harness-validation script before any measured claim.
+Focus: cross-modality refusal mismatch localization. Shared infrastructure is in place; domain stages must pass harness validation before any measured claim.
 
 ## Related work
 
@@ -87,7 +86,7 @@ registry and must pass the harness-validation script before any measured claim.
 
 ```bibtex
 @misc{visual_jailbreaks_no_projector,
-  title        = {Why Visual Jailbreaks Persist After the Projector Disappears},
+  title        = {Same Harm, Different Modality, Different Refusal},
   author       = {Alana Sung},
   year         = {2026},
   howpublished = {Technical report},

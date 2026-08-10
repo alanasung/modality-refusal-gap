@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "vlmrefusal"
 version = "0.1.0"
-description = "Trace multimodal refusal gaps in encoder-free vision-language models."
+description = "Localize text-versus-image refusal mismatches in compact vision-language models."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 license = { text = "MIT" }
